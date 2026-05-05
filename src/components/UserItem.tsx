@@ -109,7 +109,6 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
                 </div>
 
                 <div className="user-details-info">
-                    <div className="user-email">{user.email}</div>
                     {showWorkStatus && user.workStatus && (
                         <div
                             className={`work-status ${getWorkStatusClass(user.workStatus)} status-clickable`}
@@ -147,40 +146,12 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
                 </div>
             </div>
 
-            <div className="user-item-header" onClick={() => setIsExpanded(!isExpanded)}>
-                <div className="user-main-info">
-                    <div className="user-name">{user.name}</div>
-                    <div className={`user-role-badge ${getRoleClass()}`}>
-                        {getRoleLabel()}
-                    </div>
-                </div>
-                <div className="user-details-info">
-                    <div className="user-email">{user.email}</div>
-                    {user.phone && <div className="user-phone">{user.phone}</div>}
-                    <div className="expand-icon">{isExpanded ? '▲' : '▼'}</div>
-                </div>
-            </div>
-
             {isExpanded && (
                 <div className="user-item-expanded">
                     {/* Основная информация */}
                     <div className="user-expanded-section">
                         <div className="section-title">📋 Контактная информация</div>
                         <div className="user-info-grid">
-                            <div className="info-row">
-                                <span className="info-label">ID:</span>
-                                <span className="info-value">{user.id}</span>
-                            </div>
-                            <div className="info-row">
-                                <span className="info-label">Email:</span>
-                                <span className="info-value">{user.email}</span>
-                            </div>
-                            {user.phone && (
-                                <div className="info-row">
-                                    <span className="info-label">Телефон:</span>
-                                    <span className="info-value">{user.phone}</span>
-                                </div>
-                            )}
                             {user.createdAt && (
                                 <div className="info-row">
                                     <span className="info-label">Дата регистрации:</span>

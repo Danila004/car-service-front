@@ -12,7 +12,7 @@ interface UserCabinetProps {
 function UserCabinet({ onBackToHome }: UserCabinetProps) {
     const [userRole] = useState<UserRole>(currentUser.role);
     const [showMasterOrders, setShowMasterOrders] = useState<boolean>(false);
-    const [showUsersPage, setShowUsersPage] = useState<boolean>(true);
+    const [showUsersPage, setShowUsersPage] = useState<boolean>(false);
 
     // Временные заглушки для кнопок (позже реализуем)
     const handleMasterOrders = () => {

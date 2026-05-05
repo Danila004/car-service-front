@@ -14,7 +14,7 @@ export const currentUser: User = {
     id: 1,
     name: 'Алексей Иванов',
     email: 'alexey@example.com',
-    role: 'client',
+    role: 'admin',
     phone: '+7 (999) 123-45-67'
 };
 

@@ -743,6 +743,40 @@ body {
     font-size: 12px;
 }
 
+/* Кнопка отмены записи */
+.cancel-button-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.cancel-order-btn {
+    padding: 10px 20px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cancel-order-btn:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.cancel-order-btn:active {
+    transform: translateY(0);
+}
+
 /* Адаптация для мобильных */
 @media (max-width: 768px) {
     .cabinet-header-panels {
@@ -1203,7 +1237,7 @@ body {
     background: white;
     border-radius: 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    overflow: hidden;
+    overflow: visible;
     transition: all 0.2s;
 }
 
@@ -1488,10 +1522,6 @@ body {
         gap: 8px;
     }
 
-    .user-email {
-        min-width: auto;
-    }
-
     .user-phone {
         min-width: auto;
     }
@@ -1566,14 +1596,12 @@ body {
     position: absolute;
     top: 100%;
     left: 0;
-    margin-top: 8px;
+    margin-top: 2px;
     background: white;
     border-radius: 12px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     min-width: 160px;
     z-index: 100;
-    overflow: hidden;
-    animation: dropdownFade 0.2s ease;
 }
 
 @keyframes dropdownFade {

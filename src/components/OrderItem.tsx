@@ -4,10 +4,12 @@ import { Order } from '../types';
 interface OrderItemProps {
     order: Order;
     userRole: 'client' | 'master' | 'admin';
+    onCancelOrder?: (orderId: number) => void;
 }
 
-function OrderItem({ order, userRole }: OrderItemProps) {
+function OrderItem({ order, userRole, onCancelOrder }: OrderItemProps) {
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
+    const [isCancelling, setIsCancelling] = useState<boolean>(false);
 
     const formatDate = (dateString: string) => {
         const [year, month, day] = dateString.split('-');
@@ -24,6 +26,16 @@ function OrderItem({ order, userRole }: OrderItemProps) {
         return statusMap[status as keyof typeof statusMap] || status;
     };
 
+    const handleCancel = () => {
+        setIsCancelling(true);
+        if (onCancelOrder) {
+            onCancelOrder(order.id);
+        }
+    };
+
+    const currentStatus = isCancelling ? 'cancelled' : order.status;
+    const showCancelButton = currentStatus === 'pending';
+
     return (
         <div className={`order-item ${isExpanded ? 'expanded' : ''}`}>
             <div className="order-item-header" onClick={() => setIsExpanded(!isExpanded)}>
@@ -39,8 +51,8 @@ function OrderItem({ order, userRole }: OrderItemProps) {
                         {formatDate(order.serviceDate)} {order.serviceTime}
                     </div>
                     <div className="order-price">{order.totalPrice.toLocaleString()} ₽</div>
-                    <div className={`order-status status-${order.status}`}>
-                        {getStatusText(order.status)}
+                    <div className={`order-status status-${currentStatus}`}>
+                        {getStatusText(currentStatus)}
                     </div>
                     <div className="expand-icon">{isExpanded ? '▲' : '▼'}</div>
                 </div>
@@ -88,6 +100,19 @@ function OrderItem({ order, userRole }: OrderItemProps) {
                             </div>
                         </div>
                     )}
+
+                    {/* Кнопка отмены записи */}
+                    {showCancelButton && (
+                        <div className="cancel-button-container">
+                            <button
+                                className="cancel-order-btn"
+                                onClick={handleCancel}
+                            >
+                                ❌ Отменить
+                            </button>
+                        </div>
+                    )}
+
                 </div>
             )}
         </div>
