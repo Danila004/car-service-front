@@ -78,7 +78,6 @@ function CarsPage({ onBack }: CarsPageProps) {
             models: [],
         };
         setCarsData(prev => [...prev, newBrand]);
-        alert(`Марка "${brandName}" успешно добавлена!`);
     };
 
     // Добавление новой модели
@@ -102,7 +101,6 @@ function CarsPage({ onBack }: CarsPageProps) {
                     : b
             )
         );
-        alert(`Модель "${modelName}" (${year}) успешно добавлена к марке ${brand.name}!`);
     };
 
     // Добавление услуг к модели

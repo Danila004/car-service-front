@@ -224,6 +224,7 @@ function CreateOrderModal({ isOpen, onClose, brands, currentUser }: CreateOrderM
                                     value={selectedBrandId}
                                     onChange={(e) => setSelectedBrandId(Number(e.target.value))}
                                 >
+                                    <option value={0}>Выберите марку</option>
                                     {brands.map((brand) => (
                                         <option key={brand.id} value={brand.id}>
                                             {brand.name}

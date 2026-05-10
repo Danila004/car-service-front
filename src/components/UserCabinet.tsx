@@ -18,18 +18,18 @@ interface UserCabinetProps {
 function UserCabinet({ user, onLogout }: UserCabinetProps) {
     const [userRole] = useState<UserRole>(currentUser.role);
     const [showMasterOrders, setShowMasterOrders] = useState<boolean>(false);
-    const [showUsersPage, setShowUsersPage] = useState<boolean>(true);
+    const [showUsersPage, setShowUsersPage] = useState<boolean>(false);
     const [showCarsPage, setShowCarsPage] = useState<boolean>(false);
     const [showServicesPage, setShowServicesPage] = useState<boolean>(false);
     const [showCreateOrderModal, setShowCreateOrderModal] = useState<boolean>(false);
 
     // Временные заглушки для кнопок (позже реализуем)
     const handleMasterOrders = () => {
-        alert('Список заказов мастера будет доступен в следующей версии');
+        setShowMasterOrders(true);
     };
 
     const handleAdminUsers = () => {
-        alert('Список пользователей будет доступен в следующей версии');
+        setShowUsersPage(true);
     };
 
     const handleGeneralOrders = () => {
