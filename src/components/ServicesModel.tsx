@@ -1,26 +1,28 @@
 import React from 'react';
-import { SelectedModel, ServiceWithPrice } from '../types';
+import {BrandToHomepage, Model, ServiceWithPrice} from '../types';
 import './ServiceModal.css';
 
 interface ServicesModalProps {
-    model: SelectedModel;
+    model: Model;
+    brand: BrandToHomepage
+    modelServices: ServiceWithPrice[]
     onClose: () => void;
 }
 
-function ServicesModal({ model, onClose }: ServicesModalProps) {
+function ServicesModal({ model, brand, modelServices, onClose }: ServicesModalProps) {
     const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
         if (e.target === e.currentTarget) {
             onClose();
         }
     };
 
-    const services: ServiceWithPrice[] = model.services || [];
+    const services: ServiceWithPrice[] = modelServices || [];
 
     return (
         <div className="modal-overlay" onClick={handleOverlayClick}>
             <div className="modal-content">
                 <div className="modal-header">
-                    <h3>Услуги для {model.brand} {model.model} ({model.year})</h3>
+                    <h3>Услуги для {brand.name} {model.name} ({model.year})</h3>
                     <button className="modal-close" onClick={onClose}>✕</button>
                 </div>
                 <div className="modal-body">

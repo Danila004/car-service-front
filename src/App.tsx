@@ -7,7 +7,7 @@ import UserCabinet from './components/UserCabinet';
 import LoginModal from './components/LoginModal';
 import RegisterModal from './components/RegisterModal';
 import CreateOrderModal from './components/CreateOrderModal.tsx';
-import type { SelectedModel, ModalType, User } from './types';
+import type {SelectedModel, ModalType, User, Model, BrandToHomepage, ServiceWithPrice} from './types';
 import { carsData } from './data/carsData';
 import './App.css';
 
@@ -19,7 +19,8 @@ const mockExistingUsers: User[] = [
 ];
 
 function App() {
-    const [selectedModel, setSelectedModel] = useState<SelectedModel | null>(null);
+    const [selectedBrand, setSelectedBrand] = useState<BrandToHomepage | null>(null);
+    const [selectedModel, setSelectedModel] = useState<Model | null>(null);
     const [activeModal, setActiveModal] = useState<ModalType>(null);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false); // Статус входа
     const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
@@ -29,7 +30,7 @@ function App() {
     const [users, setUsers] = useState<User[]>(mockExistingUsers);
     const [showCreateOrderModal, setShowCreateOrderModal] = useState<boolean>(false);
 
-    const handleModelSelect = (model: SelectedModel) => {
+    const handleModelSelect = (model: Model, brand: BrandToHomepage, services: ServiceWithPrice[]) => {
         setSelectedModel(model);
         setActiveModal('services');
     };
@@ -91,7 +92,7 @@ function App() {
                     onBookingClick={handleBookingClick}
                 />
 
-                <BrandModelPanel onModelSelect={handleModelSelect} />
+                <BrandModelPanel onModelSelect={handleModelSelect} selectedBrand={selectedBrand} setSelectedBrand={setSelectedBrand} />
 
                 <ServiceCarPanel />
             </div>

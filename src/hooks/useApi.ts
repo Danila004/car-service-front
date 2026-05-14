@@ -6,11 +6,11 @@ export function useApi<T>(
     dependencies: React.DependencyList = []
 ): ApiState<T> & { refetch: () => Promise<void> } {
     const [data, setData] = useState<T | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
+    //const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
     const fetchData = useCallback(async () => {
-        setLoading(true);
+        //setLoading(true);
         setError(null);
         try {
             const result = await apiFunction();
@@ -20,7 +20,7 @@ export function useApi<T>(
             setError(message);
             console.error('API Error:', err);
         } finally {
-            setLoading(false);
+            //setLoading(false);
         }
     }, [apiFunction]);
 
@@ -28,5 +28,5 @@ export function useApi<T>(
         fetchData();
     }, [fetchData, ...dependencies]);
 
-    return { data, loading, error, refetch: fetchData };
+    return { data, error, refetch: fetchData };
 }

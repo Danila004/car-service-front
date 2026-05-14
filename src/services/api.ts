@@ -1,4 +1,13 @@
-import type {Brand, Service, ServiceWithPrice, CarDetails, CarWithServicePrice, AvailableCar} from '../types';
+import type {
+    Brand,
+    Service,
+    ServiceWithPrice,
+    CarDetails,
+    CarWithServicePrice,
+    AvailableCar,
+    CarModel,
+    BrandToHomepage, ModelToHomepage, Model
+} from '../types';
 
 // Базовый URL API
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -15,9 +24,9 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 // API объект с методами
 export const api = {
     // Получить все марки с моделями
-    getBrands: async (): Promise<Brand[]> => {
+    getBrands: async (): Promise<BrandToHomepage[]> => {
         const response = await fetch(`${API_BASE_URL}/brands`);
-        return handleResponse<Brand[]>(response);
+        return handleResponse<BrandToHomepage[]>(response);
     },
 
     // Получить конкретную марку по ID
@@ -27,9 +36,9 @@ export const api = {
     },
 
     // Получить модели марки
-    getModelsByBrand: async (brandId: number): Promise<Brand['models']> => {
-        const brand = await api.getBrandById(brandId);
-        return brand.models || [];
+    getModelsByBrand: async (brandId: number): Promise<Model[]> => {
+        const response = await fetch(`${API_BASE_URL}/models/${brandId}`);
+        return handleResponse<ModelToHomepage[]>(response);
     },
 
     // Получить все услуги

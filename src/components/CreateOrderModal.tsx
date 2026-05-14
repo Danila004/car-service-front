@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import {CarModel, SelectedModel, ServiceWithPrice} from '../types';
+import { api } from '../services/api';
 import { CarBrand, SelectedService, TIME_SLOTS, User } from '../types';
 
 interface CreateOrderModalProps {
@@ -38,11 +40,12 @@ function CreateOrderModal({ isOpen, onClose, brands, currentUser }: CreateOrderM
     const [clientPhone, setClientPhone] = useState<string>('');
 
     // Услуги
+    const [services, setServices] = useState<SelectedService[]>([]);
     const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
 
     const [error, setError] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [availableModels, setAvailableModels] = useState<CarBrand['models']>([]);
+    const [availableModels, setAvailableModels] = useState<CarModel[]>([]);
 
     // Расчет скидки
     const getDiscount = (): number => {
@@ -75,10 +78,37 @@ function CreateOrderModal({ isOpen, onClose, brands, currentUser }: CreateOrderM
 
     // Обновление списка моделей при выборе марки
     React.useEffect(() => {
-        const selectedBrand = brands.find(b => b.id === selectedBrandId);
-        setAvailableModels(selectedBrand?.models || []);
-        setSelectedModelId(0);
-    }, [selectedBrandId, brands]);
+        const loadModels = async () => {
+            setError('');
+            try {
+                const models = await api.getModelsByBrand(selectedBrandId);
+                setAvailableModels(models);
+            } catch (err) {
+                setError('Ошибка загрузки услуг');
+                console.error(err);
+            } finally {
+                setSelectedModelId(0);
+            }
+        };
+
+        loadModels();
+    }, [selectedBrandId]);
+
+    //Загрузка услуг
+    React.useEffect(() => {
+        const loadServices = async () => {
+            setError('');
+            try {
+                const services = await api.getServicesForModel(selectedBrandId, selectedModelId);
+                setServices(services);
+            } catch (err) {
+                setError('Ошибка загрузки услуг');
+                console.error(err);
+            }
+        };
+
+        loadServices();
+    }, [selectedModelId]);
 
     const getMinDate = () => {
         const today = new Date();

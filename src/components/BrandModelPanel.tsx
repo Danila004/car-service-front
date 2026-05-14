@@ -1,40 +1,46 @@
 import { useState } from 'react';
-import { brandsData, getModelsByBrand, getServicesForModel } from '../data/mockData';
-import { Brand, CarModel, SelectedModel, ServiceWithPrice } from '../types';
+import { api } from '../services/api';
+import { useApi } from '../hooks/useApi';
+import {BrandToHomepage, Model, ServiceWithPrice} from '../types';
 
 interface BrandModelPanelProps {
-    onModelSelect: (model: SelectedModel) => void;
+    onModelSelect: (model: Model, brand: BrandToHomepage, services: ServiceWithPrice[]) => void;
+    selectedBrand: BrandToHomepage | null;
+    setSelectedBrand: (brand: BrandToHomepage | null) => void;
 }
 
-function BrandModelPanel({ onModelSelect }: BrandModelPanelProps) {
+function BrandModelPanel({ onModelSelect, selectedBrand, setSelectedBrand }: BrandModelPanelProps) {
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
-    const [models, setModels] = useState<CarModel[]>([]);
+    //const [selectedBrand, setSelectedBrand] = useState<BrandToHomepage | null>(null);
+    const [models, setModels] = useState<Model[]>([]);
 
-    const handleBrandClick = (brand: Brand) => {
+    const { data: brands, error: brandsError } = useApi<BrandToHomepage[]>(api.getBrands);
+
+    const handleBrandClick = (brand: BrandToHomepage) => {
         setSelectedBrand(brand);
-        const brandModels = getModelsByBrand(brand.id);
-        setModels(brandModels);
+        api.getModelsByBrand(brand.id).then(setModels);
     };
 
-    const handleModelClick = async (model: CarModel) => {
+    const handleModelClick = async (model: Model) => {
         if (!selectedBrand) return;
 
-        const services: ServiceWithPrice[] = getServicesForModel(selectedBrand.id, model.id);
+        const services: ServiceWithPrice[] = await api.getServicesForModel(selectedBrand.id, model.id);
 
-        onModelSelect({
-            brand: selectedBrand.name,
-            brandId: selectedBrand.id,
-            model: model.name,
-            modelId: model.id,
-            year: model.year,
-            basePrice: model.price,
-            services: services
-        });
+        onModelSelect(model, selectedBrand, services);
 
         setIsOpen(false);
         setSelectedBrand(null);
     };
+
+    if (brandsError) {
+        return (
+            <div className="brand-panel error-panel">
+                <div className="panel-header">
+                    <span>⚠️ Ошибка загрузки данных: {brandsError}</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="brand-panel">
@@ -51,7 +57,7 @@ function BrandModelPanel({ onModelSelect }: BrandModelPanelProps) {
                     <div className="left-section">
                         <h4>Марки</h4>
                         <ul className="brands-list">
-                            {brandsData.map((brand) => (
+                            {brands?.map((brand) => (
                                 <li
                                     key={brand.id}
                                     className={`brand-item ${selectedBrand?.id === brand.id ? 'active' : ''}`}

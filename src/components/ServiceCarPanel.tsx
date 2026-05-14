@@ -1,17 +1,51 @@
-import { useState } from 'react';
-import { servicesData, getCarsForService } from '../data/mockData';
+import React, {useState} from 'react';
+import { api } from '../services/api';
+import { useApi } from '../hooks/useApi';
 import { Service, CarWithServicePrice } from '../types';
 
 function ServiceCarPanel() {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [carsWithDetails, setCarsWithDetails] = useState<CarWithServicePrice[]>([]);
+    const [loadingCars, setLoadingCars] = useState<boolean>(false);
+
+    const { data: services, loading: loadingServices, error: servicesError } = useApi<Service[]>(api.getServices);
+
+    React.useEffect(() => {
+        if (selectedService && selectedService.availableCars && selectedService.availableCars.length > 0) {
+            //setLoadingCars(true);
+            setCarsWithDetails([]);
+
+            api.getCarsForService(selectedService.availableCars)
+                .then(cars => {
+                    setCarsWithDetails(cars);
+                })
+                .catch(error => {
+                    console.error('Ошибка загрузки автомобилей:', error);
+                })
+                .finally(() => {
+                    //setLoadingCars(false);
+                });
+        } else {
+            setCarsWithDetails([]);
+        }
+    }, [selectedService]);
 
     const handleServiceClick = (service: Service) => {
         setSelectedService(service);
-        const cars = getCarsForService(service.availableCars);
-        setCarsWithDetails(cars);
+        /*const cars = getCarsForService(service.availableCars);
+        setCarsWithDetails(cars);*/
     };
+
+    if (servicesError) {
+        return (
+            <div className="service-panel error-panel">
+                <div className="panel-header">
+                    <span>⚠️ Ошибка загрузки услуг: {servicesError}</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="service-panel">
@@ -28,7 +62,7 @@ function ServiceCarPanel() {
                     <div className="left-section">
                         <h4>Услуги</h4>
                         <ul className="services-list-panel">
-                            {servicesData.map((service) => (
+                            {services?.map((service) => (
                                 <li
                                     key={service.id}
                                     className={`service-item-panel ${selectedService?.id === service.id ? 'active' : ''}`}

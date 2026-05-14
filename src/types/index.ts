@@ -6,11 +6,24 @@ export interface CarModel {
     price: number;
 }
 
+export interface Model {
+    id: number;
+    name: string;
+    year: number;
+    brandId: number;
+}
+
 // Марка автомобиля
 export interface Brand {
     id: number;
     name: string;
     models: CarModel[];
+}
+
+export interface BrandToHomepage {
+    id: number;
+    name: string;
+    status: ItemStatus;
 }
 
 // Доступный автомобиль для услуги (из API)
@@ -68,7 +81,6 @@ export type ModalType = 'login' | 'register' | 'booking' | 'services' | null;
 // Состояние API
 export interface ApiState<T> {
     data: T | null;
-    loading: boolean;
     error: string | null;
 }
 
@@ -259,3 +271,9 @@ export interface SelectedService {
 export const TIME_SLOTS = [
     '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'
 ];
+
+export enum icons {
+    CAR = '🚗',
+    ERROR = '⚠️',
+    SERVICE = '🔧'
+}
