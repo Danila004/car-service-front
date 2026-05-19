@@ -4,8 +4,8 @@ import './ServiceModal.css';
 
 interface ServicesModalProps {
     model: Model;
-    brand: BrandToHomepage
-    modelServices: ServiceWithPrice[]
+    brand: BrandToHomepage | null;
+    modelServices: ServiceWithPrice[];
     onClose: () => void;
 }
 
@@ -22,7 +22,7 @@ function ServicesModal({ model, brand, modelServices, onClose }: ServicesModalPr
         <div className="modal-overlay" onClick={handleOverlayClick}>
             <div className="modal-content">
                 <div className="modal-header">
-                    <h3>Услуги для {brand.name} {model.name} ({model.year})</h3>
+                    <h3>Услуги для {brand?.brandName} {model.modelName}</h3>
                     <button className="modal-close" onClick={onClose}>✕</button>
                 </div>
                 <div className="modal-body">
@@ -31,10 +31,10 @@ function ServicesModal({ model, brand, modelServices, onClose }: ServicesModalPr
                     ) : (
                         <div className="services-list">
                             {services.map((service) => (
-                                <div key={service.id} className="service-item">
+                                <div key={service.serviceId} className="service-item">
                                     <div className="service-info">
-                                        <span className="service-icon">{service.icon}</span>
-                                        <span className="service-name">{service.name}</span>
+                                        <span className="service-icon">🔧</span>
+                                        <span className="service-name">{service.serviceName}</span>
                                     </div>
                                     <div className="service-price">{service.price.toLocaleString()} ₽</div>
                                 </div>

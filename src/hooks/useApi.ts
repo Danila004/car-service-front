@@ -1,32 +1,31 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import type { ApiState } from '../types';
 
 export function useApi<T>(
-    apiFunction: () => Promise<T>,
+    apiFunction: (params: string) => Promise<T>,
+    initialParams: string,
     dependencies: React.DependencyList = []
-): ApiState<T> & { refetch: () => Promise<void> } {
+): ApiState<T> & { refetch: (params: string) => Promise<void> } {
     const [data, setData] = useState<T | null>(null);
-    //const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchData = useCallback(async () => {
-        //setLoading(true);
+    const fetchData = useCallback(async (params: string) => {
         setError(null);
         try {
-            const result = await apiFunction();
+            const result = await apiFunction(params);
             setData(result);
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Произошла неизвестная ошибка';
             setError(message);
             console.error('API Error:', err);
-        } finally {
-            //setLoading(false);
         }
     }, [apiFunction]);
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData, ...dependencies]);
+    React.useEffect(() => {
+        if (initialParams) {
+            fetchData(initialParams);
+        }
+    }, [fetchData, initialParams, ...dependencies]);
 
     return { data, error, refetch: fetchData };
 }

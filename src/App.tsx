@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import HeaderPanels from './components/HeaderPanels';
 import BrandModelPanel from './components/BrandModelPanel';
-import ServiceCarPanel from './components/ServiceCarPanel';
 import ServicesModal from './components/ServicesModel';
 import UserCabinet from './components/UserCabinet';
 import LoginModal from './components/LoginModal';
 import RegisterModal from './components/RegisterModal';
 import CreateOrderModal from './components/CreateOrderModal.tsx';
-import type {SelectedModel, ModalType, User, Model, BrandToHomepage, ServiceWithPrice} from './types';
+import type {ModalType, User, Model, BrandToHomepage, ServiceWithPrice} from './types';
 import { carsData } from './data/carsData';
 import './App.css';
 
@@ -19,6 +18,7 @@ const mockExistingUsers: User[] = [
 ];
 
 function App() {
+    const [services, setServices] = useState<ServiceWithPrice[]>([]);
     const [selectedBrand, setSelectedBrand] = useState<BrandToHomepage | null>(null);
     const [selectedModel, setSelectedModel] = useState<Model | null>(null);
     const [activeModal, setActiveModal] = useState<ModalType>(null);
@@ -30,7 +30,7 @@ function App() {
     const [users, setUsers] = useState<User[]>(mockExistingUsers);
     const [showCreateOrderModal, setShowCreateOrderModal] = useState<boolean>(false);
 
-    const handleModelSelect = (model: Model, brand: BrandToHomepage, services: ServiceWithPrice[]) => {
+    const handleModelSelect = (model: Model) => {
         setSelectedModel(model);
         setActiveModal('services');
     };
@@ -92,13 +92,15 @@ function App() {
                     onBookingClick={handleBookingClick}
                 />
 
-                <BrandModelPanel onModelSelect={handleModelSelect} selectedBrand={selectedBrand} setSelectedBrand={setSelectedBrand} />
+                <BrandModelPanel onModelSelect={handleModelSelect}
+                                 selectedBrand={selectedBrand}
+                                 setSelectedBrand={setSelectedBrand}
+                                 setServices={setServices}/>
 
-                <ServiceCarPanel />
             </div>
 
             {activeModal === 'services' && selectedModel && (
-                <ServicesModal model={selectedModel} onClose={closeModal} />
+                <ServicesModal model={selectedModel} brand={selectedBrand} modelServices={services} onClose={closeModal} />
             )}
 
             <LoginModal

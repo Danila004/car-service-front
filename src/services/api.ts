@@ -1,16 +1,12 @@
 import type {
     Brand,
-    Service,
-    ServiceWithPrice,
+    BrandToHomepage,
     CarDetails,
-    CarWithServicePrice,
-    AvailableCar,
-    CarModel,
-    BrandToHomepage, ModelToHomepage, Model
+    Service
 } from '../types';
 
 // Базовый URL API
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE_URL = 'http://localhost:8080';
 
 // Вспомогательная функция для обработки ошибок
 const handleResponse = async <T>(response: Response): Promise<T> => {
@@ -18,14 +14,13 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
         const error = await response.json().catch(() => ({}));
         throw new Error(error.message || `HTTP error! status: ${response.status}`);
     }
-    return response.json();
+    return response.json().then(data => data.content ?? data);
 };
 
 // API объект с методами
 export const api = {
-    // Получить все марки с моделями
-    getBrands: async (): Promise<BrandToHomepage[]> => {
-        const response = await fetch(`${API_BASE_URL}/brands`);
+    getBrands: async (status: string): Promise<BrandToHomepage[]> => {
+        const response = await fetch(`${API_BASE_URL}/brands?status=${status}`);
         return handleResponse<BrandToHomepage[]>(response);
     },
 
@@ -36,9 +31,8 @@ export const api = {
     },
 
     // Получить модели марки
-    getModelsByBrand: async (brandId: number): Promise<Model[]> => {
-        const response = await fetch(`${API_BASE_URL}/models/${brandId}`);
-        return handleResponse<ModelToHomepage[]>(response);
+    getModelsByBrand: async (brandId: number, status: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/models/${brandId}?status=${status}`);
     },
 
     // Получить все услуги
@@ -73,38 +67,8 @@ export const api = {
     },
 
     // Получить услуги для конкретной модели
-    getServicesForModel: async (brandId: number, modelId: number): Promise<ServiceWithPrice[]> => {
-        const allServices = await api.getServices();
-
-        const servicesWithPrices: ServiceWithPrice[] = [];
-
-        for (const service of allServices) {
-            const carService = service.availableCars.find(
-                (car: AvailableCar) => car.brandId === brandId && car.modelId === modelId
-            );
-            if (carService) {
-                servicesWithPrices.push({
-                    id: service.id,
-                    name: service.name,
-                    icon: service.icon,
-                    price: carService.price
-                });
-            }
-        }
-
-        return servicesWithPrices;
+    getServicesForModel: async (modelId: number, status: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/services/${modelId}?status=${status}`);
     },
 
-    // Получить детали автомобилей для услуги
-    getCarsForService: async (availableCars: AvailableCar[]): Promise<CarWithServicePrice[]> => {
-        const carPromises = availableCars.map(async (car) => {
-            const carDetails = await api.getCarDetails(car.brandId, car.modelId);
-            return {
-                ...carDetails,
-                servicePrice: car.price
-            };
-        });
-
-        return Promise.all(carPromises);
-    }
 };

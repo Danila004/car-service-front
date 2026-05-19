@@ -1,4 +1,3 @@
-// Модель автомобиля
 export interface CarModel {
     id: number;
     name: string;
@@ -7,9 +6,9 @@ export interface CarModel {
 }
 
 export interface Model {
-    id: number;
-    name: string;
-    year: number;
+    modelId: number;
+    modelName: string;
+    modelYear: number;
     brandId: number;
 }
 
@@ -21,9 +20,9 @@ export interface Brand {
 }
 
 export interface BrandToHomepage {
-    id: number;
-    name: string;
-    status: ItemStatus;
+    brandId: number;
+    brandName: string;
+    status: string;
 }
 
 // Доступный автомобиль для услуги (из API)
@@ -35,10 +34,16 @@ export interface AvailableCar {
 
 // Услуга
 export interface Service {
-    id: number;
-    name: string;
-    icon: string;
-    availableCars: AvailableCar[];
+    serviceId: number;
+    serviceName: string;
+    status: string;
+}
+
+export interface CarToHomepage {
+    brandName: string;
+    modelName: string;
+    modelYear: number;
+    price: number;
 }
 
 // Детальная информация об автомобиле
@@ -58,10 +63,10 @@ export interface CarWithServicePrice extends CarDetails {
 
 // Услуга с ценой для конкретной модели
 export interface ServiceWithPrice {
-    id: number;
-    name: string;
-    icon: string;
+    serviceId: number;
+    serviceName: string;
     price: number;
+    status: string;
 }
 
 // Выбранная модель с услугами (для модального окна)
