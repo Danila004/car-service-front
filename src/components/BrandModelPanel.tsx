@@ -1,12 +1,12 @@
 import {useState} from 'react';
 import { api } from '../services/api';
 import { useApi } from '../hooks/useApi';
-import {BrandToHomepage, Model, ServiceWithPrice} from '../types';
+import {Brand, Model, ServiceWithPrice} from '../types';
 
 interface BrandModelPanelProps {
     onModelSelect: (model: Model) => void;
-    selectedBrand: BrandToHomepage | null;
-    setSelectedBrand: (brand: BrandToHomepage | null) => void;
+    selectedBrand: Brand | null;
+    setSelectedBrand: (brand: Brand | null) => void;
     setServices: (services: ServiceWithPrice[]) => void;
 }
 
@@ -15,9 +15,9 @@ function BrandModelPanel({ onModelSelect, selectedBrand, setSelectedBrand, setSe
     const [models, setModels] = useState<Model[]>([]);
     const [error, setError] = useState<string>("");
 
-    const { data: brands, error: apiError } = useApi<BrandToHomepage[]>(api.getBrands, "ACTIVE");
+    const { data: brands, error: apiError } = useApi<Brand[]>(api.getBrands, "ACTIVE");
 
-    const handleBrandClick = (brand: BrandToHomepage) => {
+    const handleBrandClick = (brand: Brand) => {
         setSelectedBrand(brand);
         api.getModelsByBrand(brand.brandId, "ACTIVE").then(async response => {
             if(!response.ok) {

@@ -4,8 +4,8 @@ import { CarBrand } from '../types';
 interface AddModelModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onAdd: (brandId: number, modelName: string, year: number) => void;
-    brands: CarBrand[];
+    /*onAdd: (brandId: number, modelName: string, year: number) => void;
+    brands: CarBrand[];*/
 }
 
 function AddModelModal({ isOpen, onClose, onAdd, brands }: AddModelModalProps) {

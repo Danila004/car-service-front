@@ -1,94 +1,123 @@
 import { useState } from 'react';
-import { CarBrand, ItemStatus } from '../types';
+import {Brand, Model, ServiceWithPrice} from '../types';
+import {api} from "../services/api.ts";
 
 interface CarBrandItemProps {
-    brand: CarBrand;
-    onUpdateBrand: (brandId: number, updates: Partial<CarBrand>) => void;
-    onUpdateModel: (brandId: number, modelId: number, updates: Partial<CarBrand['models'][0]>) => void;
-    onUpdateService: (
-        brandId: number,
-        modelId: number,
-        serviceId: number,
-        updates: Partial<CarBrand['models'][0]['services'][0]>
-    ) => void;
+    brand: Brand;
+    onUpdateBrand: (brand: Brand, newStatus: string) => void;
 }
 
-function CarBrandItem({ brand, onUpdateBrand, onUpdateModel, onUpdateService }: CarBrandItemProps) {
+function CarBrandItem({ brand, onUpdateBrand}: CarBrandItemProps) {
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
     const [showBrandStatusDropdown, setShowBrandStatusDropdown] = useState<boolean>(false);
     const [showModelStatusDropdown, setShowModelStatusDropdown] = useState<number | null>(null);
     const [showServiceStatusDropdown, setShowServiceStatusDropdown] = useState<number | null>(null);
-    const [selectedModelId, setSelectedModelId] = useState<number | null>(null);
-    const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
     const [editServiceName, setEditServiceName] = useState<string>('');
     const [editServicePrice, setEditServicePrice] = useState<number>(0);
-    const [editServiceStatus, setEditServiceStatus] = useState<ItemStatus>('active');
+    const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
+    const [selectedModel, setSelectedModel] = useState<Model | null>(null);
+    const [selectedService, setSelectedService] = useState<ServiceWithPrice | null>(null);
+    const [models, setModels] = useState<Model[]>([]);
+    const [services, setServices] = useState<ServiceWithPrice[]>([]);
+    const [error, setError] = useState<string>("");
 
-    const getStatusLabel = (status: ItemStatus) => {
-        return status === 'active' ? '✅ Активно' : '🔒 Заблокировано';
+    const getStatusLabel = (status: string) => {
+        return status === 'ACTIVE' ? '✅ Активно' : '🔒 Заблокировано';
     };
 
-    const getStatusClass = (status: ItemStatus) => {
-        return status === 'active' ? 'status-active' : 'status-blocked';
+    const getStatusClass = (status: string) => {
+        return status === 'ACTIVE' ? 'status-active' : 'status-blocked';
     };
 
     // Обработчики для статуса марки
-    const handleBrandStatusChange = (newStatus: ItemStatus) => {
-        onUpdateBrand(brand.id, { status: newStatus });
+    const handleBrandStatusChange = (newStatus: string) => {
+        onUpdateBrand(brand, newStatus);
         setShowBrandStatusDropdown(false);
     };
 
     // Обработчики для статуса модели
-    const handleModelStatusChange = (modelId: number, newStatus: ItemStatus) => {
-        onUpdateModel(brand.id, modelId, { status: newStatus });
+    const handleModelStatusChange = (modelId: number, newStatus: string) => {
+        models.map((model) => {
+            if(model.modelId === modelId) {
+                model.status = newStatus;
+            }
+        })
         setShowModelStatusDropdown(null);
     };
 
     // Обработчики для статуса услуги
-    const handleServiceStatusChange = (serviceId: number, newStatus: ItemStatus) => {
-        if (selectedModelId) {
-            onUpdateService(brand.id, selectedModelId, serviceId, { status: newStatus });
-            if (selectedServiceId === serviceId) {
-                setEditServiceStatus(newStatus);
+    const handleServiceStatusChange = (serviceId: number, newStatus: string) => {
+        services.map((service) => {
+            if(service.serviceId === serviceId) {
+                service.status = newStatus;
             }
-        }
+        })
         setShowServiceStatusDropdown(null);
     };
 
-    // Выбор модели
-    const handleSelectModel = (modelId: number) => {
-        setSelectedModelId(modelId);
-        setSelectedServiceId(null);
-    };
-
-    // Выбор услуги
-    const handleSelectService = (service: CarBrand['models'][0]['services'][0]) => {
-        setSelectedServiceId(service.id);
-        setEditServiceName(service.name);
-        setEditServicePrice(service.price);
-        setEditServiceStatus(service.status);
+    const handleModelClick = async (model: Model) => {
+        if (!selectedBrand) return;
+        setSelectedModel(model);
+        api.getServicesForModel(model.modelId, "ACTIVE").then(async response => {
+            if(!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                setError(error);
+            }
+            else {
+                const modelServices : ServiceWithPrice[] = await response.json();
+                setServices(Array.from(modelServices));
+            }
+        });
     };
 
     // Сохранение изменений услуги
     const handleSaveService = () => {
-        if (selectedModelId && selectedServiceId) {
-            onUpdateService(brand.id, selectedModelId, selectedServiceId, {
-                name: editServiceName,
-                price: editServicePrice,
-                status: editServiceStatus,
-            });
-            alert('Услуга обновлена!');
-        }
+        //back
+        const updatedServices = services.map((service) =>
+            service.serviceId === selectedService?.serviceId
+                ? { ...service, serviceName: editServiceName, price: editServicePrice }
+                : service
+        );
+        setServices(updatedServices);
+        setEditServiceName("");
+        setEditServicePrice(0);
+        setSelectedService(null);
     };
 
-    const selectedModel = brand.models.find(m => m.id === selectedModelId);
-    const selectedService = selectedModel?.services.find(s => s.id === selectedServiceId);
+    const handleBrandClick = (brand: Brand) => {
+        setIsExpanded(!isExpanded)
+        setSelectedBrand(brand);
+        api.getModelsByBrand(brand.brandId, "ACTIVE").then(async response => {
+            if(!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                setError(error);
+            }
+            else {
+                const brandModels : Model[] = await response.json();
+                setModels(Array.from(brandModels));
+            }
+        });
+    };
+
+    const handleServiceClick = (service: ServiceWithPrice) => {
+        setSelectedService(service);
+    }
+
+    if (error) {
+        return (
+            <div className="brand-panel error-panel">
+                <div className="panel-header">
+                    <span>⚠️ Ошибка загрузки данных: error</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={`car-brand-item ${isExpanded ? 'expanded' : ''}`}>
-            <div className="car-brand-header" onClick={() => setIsExpanded(!isExpanded)}>
+            <div className="car-brand-header" onClick={() => handleBrandClick(brand)}>
                 <div className="car-brand-info">
-                    <span className="brand-name">{brand.name}</span>
+                    <span className="brand-name">{brand.brandName}</span>
                     <div
                         className={`brand-status ${getStatusClass(brand.status)} status-clickable`}
                         onMouseEnter={() => setShowBrandStatusDropdown(true)}
@@ -98,10 +127,10 @@ function CarBrandItem({ brand, onUpdateBrand, onUpdateModel, onUpdateService }: 
                         {getStatusLabel(brand.status)}
                         {showBrandStatusDropdown && (
                             <div className="dropdown-menu">
-                                <div className="dropdown-item" onClick={() => handleBrandStatusChange('active')}>
+                                <div className="dropdown-item" onClick={() => handleBrandStatusChange('ACTIVE')}>
                                     ✅ Активно
                                 </div>
-                                <div className="dropdown-item" onClick={() => handleBrandStatusChange('blocked')}>
+                                <div className="dropdown-item" onClick={() => handleBrandStatusChange('BLOCK')}>
                                     🔒 Заблокировано
                                 </div>
                             </div>
@@ -117,26 +146,26 @@ function CarBrandItem({ brand, onUpdateBrand, onUpdateModel, onUpdateService }: 
                     <div className="models-section">
                         <div className="section-title">📋 Модели</div>
                         <div className="models-list">
-                            {brand.models.map((model) => (
+                            {models?.map((model) => (
                                 <div
-                                    key={model.id}
-                                    className={`model-item ${selectedModelId === model.id ? 'selected' : ''}`}
-                                    onClick={() => handleSelectModel(model.id)}
+                                    key={model.modelId}
+                                    className={`model-item ${selectedModel?.modelId === model.modelId ? 'selected' : ''}`}
+                                    onClick={() => handleModelClick(model)}
                                 >
-                                    <div className="model-name">{model.name}</div>
+                                    <div className="model-name">{model.modelName}</div>
                                     <div
                                         className={`model-status ${getStatusClass(model.status)} status-clickable`}
-                                        onMouseEnter={() => setShowModelStatusDropdown(model.id)}
+                                        onMouseEnter={() => setShowModelStatusDropdown(model.modelId)}
                                         onMouseLeave={() => setShowModelStatusDropdown(null)}
                                         onClick={(e) => e.stopPropagation()}
                                     >
                                         {getStatusLabel(model.status)}
-                                        {showModelStatusDropdown === model.id && (
+                                        {showModelStatusDropdown === model.modelId && (
                                             <div className="dropdown-menu">
-                                                <div className="dropdown-item" onClick={() => handleModelStatusChange(model.id, 'active')}>
+                                                <div className="dropdown-item" onClick={() => handleModelStatusChange(model.modelId, 'ACTIVE')}>
                                                     ✅ Активно
                                                 </div>
-                                                <div className="dropdown-item" onClick={() => handleModelStatusChange(model.id, 'blocked')}>
+                                                <div className="dropdown-item" onClick={() => handleModelStatusChange(model.modelId, 'BLOCK')}>
                                                     🔒 Заблокировано
                                                 </div>
                                             </div>
@@ -154,27 +183,27 @@ function CarBrandItem({ brand, onUpdateBrand, onUpdateModel, onUpdateService }: 
                             <div className="placeholder">Выберите модель</div>
                         ) : (
                             <div className="services-list">
-                                {selectedModel.services.map((service) => (
+                                {services?.map((service) => (
                                     <div
-                                        key={service.id}
-                                        className={`service-item ${selectedServiceId === service.id ? 'selected' : ''}`}
-                                        onClick={() => handleSelectService(service)}
+                                        key={service.serviceId}
+                                        className={`service-item ${selectedService?.serviceId === service.serviceId ? 'selected' : ''}`}
+                                        onClick={() => handleServiceClick(service)}
                                     >
-                                        <div className="service-name">{service.name}</div>
+                                        <div className="service-name">{service.serviceName}</div>
                                         <div className="service-price">{service.price.toLocaleString()} ₽</div>
                                         <div
                                             className={`service-status ${getStatusClass(service.status)} status-clickable`}
-                                            onMouseEnter={() => setShowServiceStatusDropdown(service.id)}
+                                            onMouseEnter={() => setShowServiceStatusDropdown(service.serviceId)}
                                             onMouseLeave={() => setShowServiceStatusDropdown(null)}
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             {getStatusLabel(service.status)}
-                                            {showServiceStatusDropdown === service.id && (
+                                            {showServiceStatusDropdown === service.serviceId && (
                                                 <div className="dropdown-menu">
-                                                    <div className="dropdown-item" onClick={() => handleServiceStatusChange(service.id, 'active')}>
+                                                    <div className="dropdown-item" onClick={() => handleServiceStatusChange(service.serviceId, 'ACTIVE')}>
                                                         ✅ Активно
                                                     </div>
-                                                    <div className="dropdown-item" onClick={() => handleServiceStatusChange(service.id, 'blocked')}>
+                                                    <div className="dropdown-item" onClick={() => handleServiceStatusChange(service.serviceId, 'BLOCK')}>
                                                         🔒 Заблокировано
                                                     </div>
                                                 </div>

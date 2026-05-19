@@ -3,70 +3,17 @@ import CarsList from './CarsList';
 import AddBrandModal from './AddBrandModal';
 import AddModelModal from './AddModelModal';
 import AddServiceModal from './AddServiceModal';
-import { carsData as initialCarsData } from '../data/carsData';
 import { CarBrand } from '../types';
 
 interface CarsPageProps {
     onBack: () => void;
-    onAddBrand?: () => void;
-    onAddModel?: () => void;
 }
 
 function CarsPage({ onBack }: CarsPageProps) {
-    const [carsData, setCarsData] = useState<CarBrand[]>(initialCarsData);
     const [showAddBrandModal, setShowAddBrandModal] = useState<boolean>(false);
     const [showAddModelModal, setShowAddModelModal] = useState<boolean>(false);
     const [showAddServicesModal, setShowAddServicesModal] = useState<boolean>(false);
-
-    const handleUpdateBrand = (brandId: number, updates: Partial<CarBrand>) => {
-        setCarsData(prev =>
-            prev.map(brand =>
-                brand.id === brandId ? { ...brand, ...updates } : brand
-            )
-        );
-    };
-
-    const handleUpdateModel = (brandId: number, modelId: number, updates: Partial<CarBrand['models'][0]>) => {
-        setCarsData(prev =>
-            prev.map(brand =>
-                brand.id === brandId
-                    ? {
-                        ...brand,
-                        models: brand.models.map(model =>
-                            model.id === modelId ? { ...model, ...updates } : model
-                        ),
-                    }
-                    : brand
-            )
-        );
-    };
-
-    const handleUpdateService = (
-        brandId: number,
-        modelId: number,
-        serviceId: number,
-        updates: Partial<CarBrand['models'][0]['services'][0]>
-    ) => {
-        setCarsData(prev =>
-            prev.map(brand =>
-                brand.id === brandId
-                    ? {
-                        ...brand,
-                        models: brand.models.map(model =>
-                            model.id === modelId
-                                ? {
-                                    ...model,
-                                    services: model.services.map(service =>
-                                        service.id === serviceId ? { ...service, ...updates } : service
-                                    ),
-                                }
-                                : model
-                        ),
-                    }
-                    : brand
-            )
-        );
-    };
+    const [error, setError] = useState<string>("");
 
     // Добавление новой марки
     const handleAddBrand = (brandName: string) => {
@@ -134,7 +81,6 @@ function CarsPage({ onBack }: CarsPageProps) {
                     : b
             )
         );
-        alert(`Добавлено ${services.length} услуг(а) для ${brand?.name} ${model.name}!`);
     };
 
     return (
@@ -171,12 +117,7 @@ function CarsPage({ onBack }: CarsPageProps) {
                 </div>
 
                 {/* Список автомобилей */}
-                <CarsList
-                    carsData={carsData}
-                    onUpdateBrand={handleUpdateBrand}
-                    onUpdateModel={handleUpdateModel}
-                    onUpdateService={handleUpdateService}
-                />
+                <CarsList />
 
                 {/* Модальные окна */}
                 <AddBrandModal

@@ -8,6 +8,7 @@ import CreateOrderModal from './CreateOrderModal.tsx';
 import { currentUser, mockOrders } from '../data/mockOrders';
 import {User, UserRole} from '../types';
 import {carsData} from "../data/carsData.ts";
+import CarsList from "./CarsList.tsx";
 
 interface UserCabinetProps {
     onBackToHome: () => void;
@@ -61,7 +62,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
     const handleBackFromServicesPage = () => setShowServicesPage(false);
 
     if (showCarsPage) {
-        return <CarsPage onBack={handleBackFromCarsPage} />;
+        return <CarsList onBack={handleBackFromCarsPage} />;
     }
 
     if (showUsersPage) {

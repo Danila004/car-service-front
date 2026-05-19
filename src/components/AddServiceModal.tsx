@@ -4,8 +4,8 @@ import { CarBrand } from '../types';
 interface AddServiceModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onAdd: (brandId: number, modelId: number, services: { id: number; name: string; price: number }[]) => void;
-    brands: CarBrand[];
+    /*onAdd: (brandId: number, modelId: number, services: { id: number; name: string; price: number }[]) => void;
+    brands: CarBrand[];*/
 }
 
 // Базовая библиотека всех возможных услуг

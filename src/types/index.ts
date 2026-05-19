@@ -10,16 +10,17 @@ export interface Model {
     modelName: string;
     modelYear: number;
     brandId: number;
+    status: string;
 }
 
 // Марка автомобиля
-export interface Brand {
+/*export interface Brand {
     id: number;
     name: string;
     models: CarModel[];
-}
+}*/
 
-export interface BrandToHomepage {
+export interface Brand {
     brandId: number;
     brandName: string;
     status: string;

@@ -6,7 +6,7 @@ import UserCabinet from './components/UserCabinet';
 import LoginModal from './components/LoginModal';
 import RegisterModal from './components/RegisterModal';
 import CreateOrderModal from './components/CreateOrderModal.tsx';
-import type {ModalType, User, Model, BrandToHomepage, ServiceWithPrice} from './types';
+import type {ModalType, User, Model, Brand,ServiceWithPrice} from './types';
 import { carsData } from './data/carsData';
 import './App.css';
 
@@ -19,10 +19,10 @@ const mockExistingUsers: User[] = [
 
 function App() {
     const [services, setServices] = useState<ServiceWithPrice[]>([]);
-    const [selectedBrand, setSelectedBrand] = useState<BrandToHomepage | null>(null);
+    const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
     const [selectedModel, setSelectedModel] = useState<Model | null>(null);
     const [activeModal, setActiveModal] = useState<ModalType>(null);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false); // Статус входа
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
     const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
     const [showCabinet, setShowCabinet] = useState<boolean>(false);
     const [currentUser, setCurrentUser] = useState<User | null>(null);

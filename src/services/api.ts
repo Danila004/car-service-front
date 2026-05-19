@@ -1,6 +1,5 @@
 import type {
     Brand,
-    BrandToHomepage,
     CarDetails,
     Service
 } from '../types';
@@ -19,9 +18,9 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 
 // API объект с методами
 export const api = {
-    getBrands: async (status: string): Promise<BrandToHomepage[]> => {
+    getBrands: async (status: string): Promise<Brand[]> => {
         const response = await fetch(`${API_BASE_URL}/brands?status=${status}`);
-        return handleResponse<BrandToHomepage[]>(response);
+        return handleResponse<Brand[]>(response);
     },
 
     // Получить конкретную марку по ID
