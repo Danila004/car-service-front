@@ -15,11 +15,11 @@ function BrandModelPanel({ onModelSelect, selectedBrand, setSelectedBrand, setSe
     const [models, setModels] = useState<Model[]>([]);
     const [error, setError] = useState<string>("");
 
-    const { data: brands, error: apiError } = useApi<Brand[]>(api.getBrands, "ACTIVE");
+    const { data: brands, error: apiError } = useApi<Brand[]>(api.getBrands, "?status=ACTIVE");
 
     const handleBrandClick = (brand: Brand) => {
         setSelectedBrand(brand);
-        api.getModelsByBrand(brand.brandId, "ACTIVE").then(async response => {
+        api.getModelsByBrand(brand.brandId, "?status=ACTIVE").then(async response => {
             if(!response.ok) {
                 const error = await response.json().catch(() => ({}));
                 setError(error);
@@ -34,7 +34,7 @@ function BrandModelPanel({ onModelSelect, selectedBrand, setSelectedBrand, setSe
     const handleModelClick = async (model: Model) => {
         if (!selectedBrand) return;
         onModelSelect(model);
-        api.getServicesForModel(model.modelId, "ACTIVE").then(async response => {
+        api.getServicesForModel(model.modelId, "?status=ACTIVE").then(async response => {
             if(!response.ok) {
                 const error = await response.json().catch(() => ({}));
                 setError(error);

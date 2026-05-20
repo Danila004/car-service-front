@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
-import { CarBrand } from '../types';
+import {Brand, Model} from '../types';
+import {api} from "../services/api.ts";
 
 interface AddModelModalProps {
     isOpen: boolean;
     onClose: () => void;
-    /*onAdd: (brandId: number, modelName: string, year: number) => void;
-    brands: CarBrand[];*/
+    onAdd: (brandId: number, modelName: string, year: number) => void;
+    existingBrands: Brand[] | null;
 }
 
-function AddModelModal({ isOpen, onClose, onAdd, brands }: AddModelModalProps) {
-    const [selectedBrandId, setSelectedBrandId] = useState<number>(brands[0]?.id || 0);
+function AddModelModal({ isOpen, onClose, onAdd, existingBrands}: AddModelModalProps) {
+    const [selectedBrandId, setSelectedBrandId] = useState<number>(0);
     const [modelName, setModelName] = useState<string>('');
     const [year, setYear] = useState<number>(new Date().getFullYear());
     const [error, setError] = useState<string>('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!selectedBrandId) {
@@ -27,19 +28,27 @@ function AddModelModal({ isOpen, onClose, onAdd, brands }: AddModelModalProps) {
             return;
         }
 
-        if (year < 1900 || year > new Date().getFullYear() + 1) {
+        if (!year && (year < 1900 || year > new Date().getFullYear() + 1)) {
             setError(`Год должен быть между 1900 и ${new Date().getFullYear() + 1}`);
             return;
         }
 
         // Проверка на существующую модель
-        const selectedBrand = brands.find(b => b.id === selectedBrandId);
-        const existingModel = selectedBrand?.models.find(
-            m => m.name.toLowerCase() === modelName.trim().toLowerCase()
+        const selectedBrand = existingBrands?.find(brand => brand.brandId === selectedBrandId);
+        const response = await api.getModelsByBrand(selectedBrandId, "");
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+
+        const brandModels : Model[] = await response.json();
+        const existingModel = brandModels?.find(
+            model => model.modelName.toLowerCase() === modelName.trim().toLowerCase()
         );
 
         if (existingModel) {
-            setError(`Модель "${modelName.trim()}" уже существует у марки ${selectedBrand?.name}`);
+            setError(`Модель "${modelName.trim()}" уже существует у марки ${selectedBrand?.brandName}`);
             return;
         }
 
@@ -79,9 +88,10 @@ function AddModelModal({ isOpen, onClose, onAdd, brands }: AddModelModalProps) {
                                 value={selectedBrandId}
                                 onChange={(e) => setSelectedBrandId(Number(e.target.value))}
                             >
-                                {brands.map((brand) => (
-                                    <option key={brand.id} value={brand.id}>
-                                        {brand.name}
+                                <option value="">Выберите бренд</option>
+                                {existingBrands?.map((brand) => (
+                                    <option key={brand.brandId} value={brand.brandId}>
+                                        {brand.brandName}
                                     </option>
                                 ))}
                             </select>

@@ -1,8 +1,8 @@
-import {Brand} from '../types';
+import {AddServiceForModel, Brand} from '../types';
 import CarBrandItem from './CarBrandItem';
 import {useApi} from "../hooks/useApi.ts";
 import {api} from "../services/api.ts";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import AddBrandModal from "./AddBrandModal.tsx";
 import AddModelModal from "./AddModelModal.tsx";
 import AddServiceModal from "./AddServiceModal.tsx";
@@ -12,80 +12,45 @@ interface CarListProps {
 }
 
 function CarsList({onBack}: CarListProps) {
-    const { data: brands, error: apiError } = useApi<Brand[]>(api.getBrands, "");
+    const { data: apiBrands, error: apiError } = useApi<Brand[]>(api.getBrands, "?status=");
     const [showAddBrandModal, setShowAddBrandModal] = useState<boolean>(false);
     const [showAddModelModal, setShowAddModelModal] = useState<boolean>(false);
     const [showAddServicesModal, setShowAddServicesModal] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
+    const [brands, setBrands] = useState<Brand[] | null>([]);
 
-    /*
+    useEffect(() => {
+        setBrands(apiBrands);
+    }, [apiBrands]);
+
     // Добавление новой марки
     const handleAddBrand = (brandName: string) => {
-        const newBrandId = Math.max(...carsData.map(b => b.id), 0) + 1;
-        const newBrand: CarBrand = {
-            id: newBrandId,
-            name: brandName,
-            status: 'active',
-            models: [],
+
+        const newBrand: Brand = {
+            brandId: 0,
+            brandName: brandName,
+            status: 'BLOCK'
         };
-        setCarsData(prev => [...prev, newBrand]);
+        setBrands(prev => [...(prev ?? []), newBrand].sort((a, b) =>
+            a.brandName.localeCompare(b.brandName)));
     };
 
     // Добавление новой модели
     const handleAddModel = (brandId: number, modelName: string, year: number) => {
-        const brand = carsData.find(b => b.id === brandId);
-        if (!brand) return;
-
-        const newModelId = Math.max(...brand.models.map(m => m.id), 0) + 1;
         const newModel = {
-            id: newModelId,
+            modelId: 0,
             name: modelName,
             year: year,
-            status: 'active' as const,
-            services: [],
+            status: 'BLOCK',
+            brandId: brandId
         };
 
-        setCarsData(prev =>
-            prev.map(b =>
-                b.id === brandId
-                    ? { ...b, models: [...b.models, newModel] }
-                    : b
-            )
-        );
     };
 
     // Добавление услуг к модели
-    const handleAddServices = (
-        brandId: number,
-        modelId: number,
-        services: { id: number; name: string; price: number }[]
-    ) => {
-        const brand = carsData.find(b => b.id === brandId);
-        const model = brand?.models.find(m => m.id === modelId);
-        if (!model) return;
+    const handleAddServices = (service: AddServiceForModel) => {
 
-        const newServices = services.map((service, index) => ({
-            id: Math.max(...model.services.map(s => s.id), 0) + index + 1,
-            name: service.name,
-            price: service.price,
-            status: 'active' as const,
-        }));
-
-        setCarsData(prev =>
-            prev.map(b =>
-                b.id === brandId
-                    ? {
-                        ...b,
-                        models: b.models.map(m =>
-                            m.id === modelId
-                                ? { ...m, services: [...m.services, ...newServices] }
-                                : m
-                        ),
-                    }
-                    : b
-            )
-        );
-    };*/
+    };
 
     const handleUpdateBrand = (brandToChange: Brand, newStatus: string) => {
         brands?.map((brand) => {
@@ -155,22 +120,23 @@ function CarsList({onBack}: CarListProps) {
                     isOpen={showAddBrandModal}
                     onClose={() => setShowAddBrandModal(false)}
                     onAdd={handleAddBrand}
-                    existingBrands={carsData}
+                    existingBrands={brands}
                 />
 
                 <AddModelModal
                     isOpen={showAddModelModal}
                     onClose={() => setShowAddModelModal(false)}
                     onAdd={handleAddModel}
-                    brands={carsData}
+                    existingBrands={brands}
                 />
 
                 <AddServiceModal
                     isOpen={showAddServicesModal}
                     onClose={() => setShowAddServicesModal(false)}
                     onAdd={handleAddServices}
-                    brands={carsData}
+                    existingBrands={brands}
                 />
+
             </div>
         </div>
     );

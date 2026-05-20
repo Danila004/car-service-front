@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { CarBrand } from '../types';
+import {AddServiceForModel, Brand, Model, SelectedService} from '../types';
 
 interface AddServiceModalProps {
     isOpen: boolean;
     onClose: () => void;
-    /*onAdd: (brandId: number, modelId: number, services: { id: number; name: string; price: number }[]) => void;
-    brands: CarBrand[];*/
+    onAdd: (service: AddServiceForModel) => void;
+    brands: Brand[];
 }
 
 // Базовая библиотека всех возможных услуг
@@ -27,36 +27,21 @@ const allAvailableServices = [
     { id: 15, name: 'Чистка инжектора' },
 ];
 
-interface SelectedService {
-    id: number;
-    name: string;
-    price: number;
-}
 
 function AddServiceModal({ isOpen, onClose, onAdd, brands }: AddServiceModalProps) {
-    const [selectedBrandId, setSelectedBrandId] = useState<number>(brands[0]?.id || 0);
+    const [selectedBrandId, setSelectedBrandId] = useState<number>(0);
     const [selectedModelId, setSelectedModelId] = useState<number>(0);
     const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
     const [error, setError] = useState<string>('');
-    const [availableModels, setAvailableModels] = useState<CarBrand['models']>([]);
+    const [availableModels, setAvailableModels] = useState<Model[]>([]);
 
     // Сброс состояния при открытии
-    useEffect(() => {
-        if (isOpen && brands.length > 0) {
-            setSelectedBrandId(brands[0]?.id || 0);
-            setSelectedModelId(0);
-            setSelectedServices([]);
-            setError('');
-        }
-    }, [isOpen, brands]);
-
-    // Обновление списка моделей при выборе марки
-    useEffect(() => {
-        const selectedBrand = brands.find(b => b.id === selectedBrandId);
-        setAvailableModels(selectedBrand?.models || []);
+    React.useEffect(() => {
+        setSelectedBrandId(0);
         setSelectedModelId(0);
         setSelectedServices([]);
-    }, [selectedBrandId, brands]);
+        setError('');
+    }, [isOpen]);
 
     // Получение уже добавленных услуг для выбранной модели
     const getExistingServiceIds = (): number[] => {
@@ -69,22 +54,6 @@ function AddServiceModal({ isOpen, onClose, onAdd, brands }: AddServiceModalProp
     const getAvailableServices = () => {
         const existingIds = getExistingServiceIds();
         return allAvailableServices.filter(service => !existingIds.includes(service.id));
-    };
-
-    const handleServiceToggle = (serviceId: number, serviceName: string, checked: boolean) => {
-        if (checked) {
-            setSelectedServices(prev => [...prev, { id: serviceId, name: serviceName, price: 0 }]);
-        } else {
-            setSelectedServices(prev => prev.filter(s => s.id !== serviceId));
-        }
-    };
-
-    const handlePriceChange = (serviceId: number, price: number) => {
-        setSelectedServices(prev =>
-            prev.map(service =>
-                service.id === serviceId ? { ...service, price } : service
-            )
-        );
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -123,15 +92,6 @@ function AddServiceModal({ isOpen, onClose, onAdd, brands }: AddServiceModalProp
         setError('');
         onClose();
     };
-
-    const existingServiceNames = (): string[] => {
-        const existingIds = getExistingServiceIds();
-        return allAvailableServices
-            .filter(s => existingIds.includes(s.id))
-            .map(s => s.name);
-    };
-
-    const availableServices = getAvailableServices();
 
     if (!isOpen) return null;
 
@@ -188,9 +148,7 @@ function AddServiceModal({ isOpen, onClose, onAdd, brands }: AddServiceModalProp
                                 <div className="info-title">📋 Уже добавлены:</div>
                                 <div className="existing-services-list">
                                     {existingServiceNames().map((service, idx) => (
-                                        <span key={idx} className="existing-service-tag">
-                      {service}
-                    </span>
+                                        <span key={idx} className="existing-service-tag">{service}</span>
                                     ))}
                                 </div>
                             </div>

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { CarBrand } from '../types';
+import {Brand} from '../types';
 
 interface AddBrandModalProps {
     isOpen: boolean;
     onClose: () => void;
-    /*onAdd: (brandName: string) => void;
-    existingBrands: CarBrand[];*/
+    onAdd: (brandName: string) => void;
+    existingBrands: Brand[] | null;
 }
 
 function AddBrandModal({ isOpen, onClose, onAdd, existingBrands }: AddBrandModalProps) {
@@ -22,8 +22,8 @@ function AddBrandModal({ isOpen, onClose, onAdd, existingBrands }: AddBrandModal
         }
 
         // Проверка на существующую марку
-        const existingBrand = existingBrands.find(
-            brand => brand.name.toLowerCase() === brandName.trim().toLowerCase()
+        const existingBrand = existingBrands?.find(
+            brand => brand.brandName.toLowerCase() === brandName.trim().toLowerCase()
         );
 
         if (existingBrand) {

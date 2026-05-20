@@ -70,6 +70,18 @@ export interface ServiceWithPrice {
     status: string;
 }
 
+export interface AddServiceForModel {
+    serviceId: number;
+    modelId: number;
+    price: number;
+}
+
+export interface SelectedService {
+    id: number;
+    name: string;
+    price: number;
+}
+
 // Выбранная модель с услугами (для модального окна)
 export interface SelectedModel {
     brand: string;

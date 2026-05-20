@@ -18,8 +18,8 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 
 // API объект с методами
 export const api = {
-    getBrands: async (status: string): Promise<Brand[]> => {
-        const response = await fetch(`${API_BASE_URL}/brands?status=${status}`);
+    getBrands: async (params: string): Promise<Brand[]> => {
+        const response = await fetch(`${API_BASE_URL}/brands${params}`);
         return handleResponse<Brand[]>(response);
     },
 
@@ -30,8 +30,9 @@ export const api = {
     },
 
     // Получить модели марки
-    getModelsByBrand: async (brandId: number, status: string): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/models/${brandId}?status=${status}`);
+    getModelsByBrand: async (brandId: number, params: string): Promise<Response> => {
+        console.log(`${API_BASE_URL}/models/${brandId}${params}`);
+        return await fetch(`${API_BASE_URL}/models/${brandId}${params}`);
     },
 
     // Получить все услуги
@@ -66,8 +67,8 @@ export const api = {
     },
 
     // Получить услуги для конкретной модели
-    getServicesForModel: async (modelId: number, status: string): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/services/${modelId}?status=${status}`);
+    getServicesForModel: async (modelId: number, params: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/services/${modelId}${params}`);
     },
 
 };

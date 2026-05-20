@@ -58,7 +58,7 @@ function CarBrandItem({ brand, onUpdateBrand}: CarBrandItemProps) {
     const handleModelClick = async (model: Model) => {
         if (!selectedBrand) return;
         setSelectedModel(model);
-        api.getServicesForModel(model.modelId, "ACTIVE").then(async response => {
+        api.getServicesForModel(model.modelId, "").then(async response => {
             if(!response.ok) {
                 const error = await response.json().catch(() => ({}));
                 setError(error);
@@ -87,7 +87,7 @@ function CarBrandItem({ brand, onUpdateBrand}: CarBrandItemProps) {
     const handleBrandClick = (brand: Brand) => {
         setIsExpanded(!isExpanded)
         setSelectedBrand(brand);
-        api.getModelsByBrand(brand.brandId, "ACTIVE").then(async response => {
+        api.getModelsByBrand(brand.brandId, "").then(async response => {
             if(!response.ok) {
                 const error = await response.json().catch(() => ({}));
                 setError(error);
