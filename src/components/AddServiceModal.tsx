@@ -1,39 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import {AddServiceForModel, Brand, Model, SelectedService} from '../types';
+import React, { useState } from 'react';
+import {Brand, Model, Service, ServiceWithPrice} from '../types';
+import {api} from "../services/api.ts";
 
 interface AddServiceModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onAdd: (service: AddServiceForModel) => void;
-    brands: Brand[];
+    onAdd: (services: ServiceWithPrice[]) => void;
+    existingBrands: Brand[] | null;
 }
 
-// Базовая библиотека всех возможных услуг
-const allAvailableServices = [
-    { id: 1, name: 'Замена масла' },
-    { id: 2, name: 'Диагностика' },
-    { id: 3, name: 'Шиномонтаж' },
-    { id: 4, name: 'Ремонт подвески' },
-    { id: 5, name: 'Покраска' },
-    { id: 6, name: 'Замена тормозных колодок' },
-    { id: 7, name: 'Замена ремня ГРМ' },
-    { id: 8, name: 'Регулировка развал-схождения' },
-    { id: 9, name: 'Замена фильтров' },
-    { id: 10, name: 'Замена свечей зажигания' },
-    { id: 11, name: 'Замена аккумулятора' },
-    { id: 12, name: 'Ремонт кондиционера' },
-    { id: 13, name: 'Замена жидкости охлаждения' },
-    { id: 14, name: 'Компьютерная диагностика' },
-    { id: 15, name: 'Чистка инжектора' },
-];
-
-
-function AddServiceModal({ isOpen, onClose, onAdd, brands }: AddServiceModalProps) {
+function AddServiceModal({ isOpen, onClose, onAdd, existingBrands }: AddServiceModalProps) {
     const [selectedBrandId, setSelectedBrandId] = useState<number>(0);
     const [selectedModelId, setSelectedModelId] = useState<number>(0);
-    const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
+    const [selectedServices, setSelectedServices] = useState<ServiceWithPrice[]>([]);
     const [error, setError] = useState<string>('');
-    const [availableModels, setAvailableModels] = useState<Model[]>([]);
+    const [models, setModels] = useState<Model[]>([]);
+    const [existingServices, setExistingServices] = useState<Service[]>([]);
+    const [availableServices, setAvailableServices] = useState<ServiceWithPrice[]>([]);
 
     // Сброс состояния при открытии
     React.useEffect(() => {
@@ -42,19 +25,6 @@ function AddServiceModal({ isOpen, onClose, onAdd, brands }: AddServiceModalProp
         setSelectedServices([]);
         setError('');
     }, [isOpen]);
-
-    // Получение уже добавленных услуг для выбранной модели
-    const getExistingServiceIds = (): number[] => {
-        const brand = brands.find(b => b.id === selectedBrandId);
-        const model = brand?.models.find(m => m.id === selectedModelId);
-        return model?.services.map(s => s.id) || [];
-    };
-
-    // Доступные услуги (все, кроме уже добавленных)
-    const getAvailableServices = () => {
-        const existingIds = getExistingServiceIds();
-        return allAvailableServices.filter(service => !existingIds.includes(service.id));
-    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -77,11 +47,11 @@ function AddServiceModal({ isOpen, onClose, onAdd, brands }: AddServiceModalProp
         // Проверка, что у всех выбранных услуг указана цена > 0
         const invalidServices = selectedServices.filter(s => s.price <= 0);
         if (invalidServices.length > 0) {
-            setError('Укажите цену для всех выбранных услуг');
+            setError('Укажите положительную цену для всех выбранных услуг');
             return;
         }
 
-        onAdd(selectedBrandId, selectedModelId, selectedServices);
+        onAdd(selectedServices);
         setSelectedServices([]);
         setError('');
         onClose();
@@ -91,6 +61,75 @@ function AddServiceModal({ isOpen, onClose, onAdd, brands }: AddServiceModalProp
         setSelectedServices([]);
         setError('');
         onClose();
+    };
+
+    const handleBrandChange = async (brandId: number) => {
+        const response = await api.getModelsByBrand(brandId, "");
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        const brandModels : Model[] = await response.json();
+        setModels(Array.from(brandModels));
+    };
+
+    const handleModelChange = async (modelId: number) => {
+        const response1 = await api.getServicesForModel(modelId, "");
+        if(!response1.ok) {
+            const error = await response1.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        const servicesForModel : Service[] = await response1.json();
+        setExistingServices(Array.from(servicesForModel));
+
+        const response2 = await api.getSimpleServices("");
+        if(!response2.ok) {
+            const error = await response2.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        const allServices : Service[] = await response2.json();
+        const existServices: Service[] = [];
+        const availServices: ServiceWithPrice[] = [];
+
+        for (const service of allServices) {
+            if (servicesForModel.find(serviceM => serviceM.serviceName === service.serviceName)) {
+                existServices.push(service);
+            } else {
+                availServices.push({serviceId: service.serviceId,
+                    serviceName: service.serviceName,
+                    modelId: 0,
+                    price : 0,
+                    status: "BLOCK"});
+            }
+        }
+        setExistingServices(existServices);
+        setAvailableServices(availServices);
+    };
+
+    const handleTouchService = (service: ServiceWithPrice, checked: boolean) => {
+        if (checked) {
+            setSelectedServices(prev => [...prev,
+                {
+                    serviceId: service.serviceId,
+                    serviceName: service.serviceName,
+                    modelId: selectedModelId,
+                    price: 0,
+                    status: "BLOCK"
+                }]);
+        } else {
+            setSelectedServices(prev => prev.filter(s => s.serviceId !== service.serviceId));
+        }
+    };
+
+    const handlePriceChange = (serviceId: number, price: number) => {
+        setSelectedServices(prev =>
+            prev.map(service =>
+                service.serviceId === serviceId ? { ...service, price } : service
+            )
+        );
     };
 
     if (!isOpen) return null;
@@ -115,11 +154,14 @@ function AddServiceModal({ isOpen, onClose, onAdd, brands }: AddServiceModalProp
                             <label>Марка автомобиля</label>
                             <select
                                 value={selectedBrandId}
-                                onChange={(e) => setSelectedBrandId(Number(e.target.value))}
+                                onChange={(e) => {
+                                    setSelectedBrandId(Number(e.target.value));
+                                    handleBrandChange(Number(e.target.value));}}
                             >
-                                {brands.map((brand) => (
-                                    <option key={brand.id} value={brand.id}>
-                                        {brand.name}шы
+                                <option>Выберите марку</option>
+                                {existingBrands?.map((brand) => (
+                                    <option key={brand.brandId} value={brand.brandId}>
+                                        {brand.brandName}
                                     </option>
                                 ))}
                             </select>
@@ -130,25 +172,28 @@ function AddServiceModal({ isOpen, onClose, onAdd, brands }: AddServiceModalProp
                             <label>Модель автомобиля</label>
                             <select
                                 value={selectedModelId}
-                                onChange={(e) => setSelectedModelId(Number(e.target.value))}
-                                disabled={availableModels.length === 0}
+                                onChange={(e) => {
+                                    setSelectedModelId(Number(e.target.value));
+                                    handleModelChange(Number(e.target.value));
+                                }}
+                                disabled={models.length === 0}
                             >
                                 <option value={0}>Выберите модель</option>
-                                {availableModels.map((model) => (
-                                    <option key={model.id} value={model.id}>
-                                        {model.name} ({model.year})
+                                {models?.map((model) => (
+                                    <option key={model.modelId} value={model.modelId}>
+                                        {model.modelName} ({model.modelYear})
                                     </option>
                                 ))}
                             </select>
                         </div>
 
                         {/* Уже добавленные услуги */}
-                        {selectedModelId > 0 && existingServiceNames().length > 0 && (
+                        {selectedModelId > 0 && existingServices.length > 0 && (
                             <div className="existing-services-info">
                                 <div className="info-title">📋 Уже добавлены:</div>
                                 <div className="existing-services-list">
-                                    {existingServiceNames().map((service, idx) => (
-                                        <span key={idx} className="existing-service-tag">{service}</span>
+                                    {existingServices?.map((service, idx) => (
+                                        <span key={idx} className="existing-service-tag">{service.serviceName}</span>
                                     ))}
                                 </div>
                             </div>
@@ -165,18 +210,18 @@ function AddServiceModal({ isOpen, onClose, onAdd, brands }: AddServiceModalProp
                                 ) : (
                                     <div className="services-list-with-price">
                                         {availableServices.map((service) => {
-                                            const isSelected = selectedServices.some(s => s.id === service.id);
-                                            const selectedService = selectedServices.find(s => s.id === service.id);
+                                            const isSelected = selectedServices.some(s => s.serviceId === service.serviceId);
+                                            const selectedService = selectedServices.find(s => s.serviceId === service.serviceId);
 
                                             return (
-                                                <div key={service.id} className="service-price-row">
+                                                <div key={service.serviceId} className="service-price-row">
                                                     <label className="service-checkbox">
                                                         <input
                                                             type="checkbox"
                                                             checked={isSelected}
-                                                            onChange={(e) => handleServiceToggle(service.id, service.name, e.target.checked)}
+                                                            onChange={(e) => handleTouchService(service, e.target.checked)}
                                                         />
-                                                        <span>{service.name}</span>
+                                                        <span>{service.serviceName}</span>
                                                     </label>
                                                     {isSelected && (
                                                         <input
@@ -184,8 +229,7 @@ function AddServiceModal({ isOpen, onClose, onAdd, brands }: AddServiceModalProp
                                                             className="service-price-input"
                                                             placeholder="Цена (₽)"
                                                             value={selectedService?.price || ''}
-                                                            onChange={(e) => handlePriceChange(service.id, Number(e.target.value))}
-                                                            min="1"
+                                                            onChange={(e) => handlePriceChange(service.serviceId, Number(e.target.value))}
                                                         />
                                                     )}
                                                 </div>

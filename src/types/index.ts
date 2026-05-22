@@ -66,9 +66,19 @@ export interface CarWithServicePrice extends CarDetails {
 export interface ServiceWithPrice {
     serviceId: number;
     serviceName: string;
+    modelId: number;
     price: number;
     status: string;
 }
+
+export interface Price {
+    priceId: number;
+    serviceId: number;
+    modelId: number;
+    price: number;
+    status: string;
+}
+
 
 export interface AddServiceForModel {
     serviceId: number;

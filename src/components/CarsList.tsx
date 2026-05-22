@@ -1,4 +1,4 @@
-import {AddServiceForModel, Brand} from '../types';
+import {Brand, ServiceWithPrice} from '../types';
 import CarBrandItem from './CarBrandItem';
 import {useApi} from "../hooks/useApi.ts";
 import {api} from "../services/api.ts";
@@ -24,38 +24,61 @@ function CarsList({onBack}: CarListProps) {
     }, [apiBrands]);
 
     // Добавление новой марки
-    const handleAddBrand = (brandName: string) => {
+    const handleAddBrand = async (brandName: string) => {
 
         const newBrand: Brand = {
             brandId: 0,
             brandName: brandName,
             status: 'BLOCK'
         };
-        setBrands(prev => [...(prev ?? []), newBrand].sort((a, b) =>
+        const response : Response = await api.addBrand(newBrand);
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        const newBrandWithId : Brand = await response.json();
+        setBrands(prev => [...(prev ?? []), newBrandWithId].sort((a, b) =>
             a.brandName.localeCompare(b.brandName)));
     };
 
     // Добавление новой модели
-    const handleAddModel = (brandId: number, modelName: string, year: number) => {
+    const handleAddModel = async (brandId: number, modelName: string, year: number) => {
         const newModel = {
             modelId: 0,
-            name: modelName,
-            year: year,
-            status: 'BLOCK',
-            brandId: brandId
+            modelName: modelName,
+            brandId: brandId,
+            modelYear: year,
+            status: 'BLOCK'
         };
-
+        const response : Response = await api.addModel(newModel);
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
     };
 
     // Добавление услуг к модели
-    const handleAddServices = (service: AddServiceForModel) => {
-
+    const handleAddPrices = async (services: ServiceWithPrice[]) => {
+        const response : Response = await api.addPrices(services);
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
     };
 
-    const handleUpdateBrand = (brandToChange: Brand, newStatus: string) => {
-        brands?.map((brand) => {
-            if(brand.brandId === brandToChange.brandId)
-                brand.status = newStatus;
+    const handleUpdateBrand = async (brand: Brand, newStatus: string) => {
+        const response = await api.setBrandStatus(brand);
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        brands?.map((b) => {
+            if(b.brandId === brand.brandId)
+                b.status = newStatus;
         })
     }
 
@@ -133,7 +156,7 @@ function CarsList({onBack}: CarListProps) {
                 <AddServiceModal
                     isOpen={showAddServicesModal}
                     onClose={() => setShowAddServicesModal(false)}
-                    onAdd={handleAddServices}
+                    onAdd={handleAddPrices}
                     existingBrands={brands}
                 />
 

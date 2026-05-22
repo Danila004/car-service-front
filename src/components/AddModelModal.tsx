@@ -15,6 +15,7 @@ function AddModelModal({ isOpen, onClose, onAdd, existingBrands}: AddModelModalP
     const [year, setYear] = useState<number>(new Date().getFullYear());
     const [error, setError] = useState<string>('');
 
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -107,6 +108,7 @@ function AddModelModal({ isOpen, onClose, onAdd, existingBrands}: AddModelModalP
                                 }}
                                 placeholder="Например: Camry, X5, A4"
                                 autoFocus
+                                disabled={selectedBrandId == 0}
                             />
                         </div>
                         <div className="form-field">

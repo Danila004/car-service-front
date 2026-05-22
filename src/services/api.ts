@@ -1,7 +1,7 @@
 import type {
     Brand,
-    CarDetails,
-    Service
+    CarDetails, Model, Price,
+    Service, ServiceWithPrice
 } from '../types';
 
 // Базовый URL API
@@ -23,6 +23,24 @@ export const api = {
         return handleResponse<Brand[]>(response);
     },
 
+    addBrand: async (brand: Brand): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/brands`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(brand)});
+    },
+
+    setBrandStatus: async (brand: Brand): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/brands`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(brand)});
+    },
+
     // Получить конкретную марку по ID
     getBrandById: async (id: number): Promise<Brand> => {
         const response = await fetch(`${API_BASE_URL}/brands/${id}`);
@@ -31,14 +49,44 @@ export const api = {
 
     // Получить модели марки
     getModelsByBrand: async (brandId: number, params: string): Promise<Response> => {
-        console.log(`${API_BASE_URL}/models/${brandId}${params}`);
         return await fetch(`${API_BASE_URL}/models/${brandId}${params}`);
     },
 
+    addModel: async (model: Model): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/models`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(model)});
+    },
+
+    setModelStatus: async (model: Model): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/models`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(model)});
+    },
+
     // Получить все услуги
-    getServices: async (): Promise<Service[]> => {
-        const response = await fetch(`${API_BASE_URL}/services`);
+    getServices: async (params: string): Promise<Service[]> => {
+        const response = await fetch(`${API_BASE_URL}/services${params}`);
         return handleResponse<Service[]>(response);
+    },
+
+    getSimpleServices: async (params: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/services${params}`);
+    },
+
+    setPriceStatus: async (price: Price): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/prices`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(price)});
     },
 
     // Получить конкретную услугу по ID
@@ -71,4 +119,12 @@ export const api = {
         return await fetch(`${API_BASE_URL}/services/${modelId}${params}`);
     },
 
+    addPrices: async (prices: ServiceWithPrice[]): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/prices`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(prices)});
+    },
 };
