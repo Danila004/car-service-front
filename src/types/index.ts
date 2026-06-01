@@ -64,6 +64,7 @@ export interface CarWithServicePrice extends CarDetails {
 
 // Услуга с ценой для конкретной модели
 export interface ServiceWithPrice {
+    priceId: number
     serviceId: number;
     serviceName: string;
     modelId: number;

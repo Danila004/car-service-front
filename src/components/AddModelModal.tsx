@@ -117,8 +117,6 @@ function AddModelModal({ isOpen, onClose, onAdd, existingBrands}: AddModelModalP
                                 type="number"
                                 value={year}
                                 onChange={(e) => setYear(Number(e.target.value))}
-                                min="1900"
-                                max={new Date().getFullYear() + 1}
                             />
                         </div>
                     </div>

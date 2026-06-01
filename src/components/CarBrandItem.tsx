@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import {Brand, Model, Price, ServiceWithPrice} from '../types';
+import {Brand, Model, ServiceWithPrice} from '../types';
 import {api} from "../services/api.ts";
 
 interface CarBrandItemProps {
@@ -12,7 +12,7 @@ function CarBrandItem({ brand, onUpdateBrand}: CarBrandItemProps) {
     const [showBrandStatusDropdown, setShowBrandStatusDropdown] = useState<boolean>(false);
     const [showModelStatusDropdown, setShowModelStatusDropdown] = useState<number | null>(null);
     const [showServiceStatusDropdown, setShowServiceStatusDropdown] = useState<number | null>(null);
-    const [editServiceName, setEditServiceName] = useState<string>('');
+    const [editModelYear, setEditModelYear] = useState<number>(new Date().getFullYear());
     const [editServicePrice, setEditServicePrice] = useState<number>(0);
     const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
     const [selectedModel, setSelectedModel] = useState<Model | null>(null);
@@ -37,7 +37,7 @@ function CarBrandItem({ brand, onUpdateBrand}: CarBrandItemProps) {
 
     // Обработчики для статуса модели
     const handleModelStatusChange = async (model: Model, newStatus: string) => {
-        const response = await api.setModelStatus({
+        const response = await api.setModel({
             modelId: model.modelId,
             modelName: model.modelName,
             brandId: model.brandId,
@@ -58,13 +58,13 @@ function CarBrandItem({ brand, onUpdateBrand}: CarBrandItemProps) {
     };
 
     // Обработчики для статуса услуги
-    const handleServiceStatusChange = async (price: Price, newStatus: string) => {
-        const response = await api.setPriceStatus({
+    const handleServiceStatusChange = async (price: ServiceWithPrice, newStatus: string) => {
+        const response = await api.setPrice({
             priceId: price.priceId,
-            serviceId:
-            modelId: number
-            price: number
-            status: string
+            serviceId: price.serviceId,
+            modelId: price.modelId,
+            price: price.price,
+            status: newStatus
         });
         if(!response.ok) {
             const error = await response.json().catch(() => ({}));
@@ -95,17 +95,50 @@ function CarBrandItem({ brand, onUpdateBrand}: CarBrandItemProps) {
     };
 
     // Сохранение изменений услуги
-    const handleSaveService = () => {
-        //back
+    const handleSaveService = async (price: ServiceWithPrice) => {
+        const response = await api.setPrice({
+            priceId: price.priceId,
+            serviceId: price.serviceId,
+            modelId: price.modelId,
+            price: editServicePrice,
+            status: price.status
+        });
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
         const updatedServices = services.map((service) =>
             service.serviceId === selectedService?.serviceId
-                ? { ...service, serviceName: editServiceName, price: editServicePrice }
+                ? { ...service, price: editServicePrice }
                 : service
         );
         setServices(updatedServices);
-        setEditServiceName("");
         setEditServicePrice(0);
         setSelectedService(null);
+    };
+
+    const handleSaveModel = async (model: Model) => {
+        const response = await api.setModel({
+            modelId: model.modelId,
+            modelName: model.modelName,
+            modelYear: editModelYear,
+            brandId: selectedBrand.brandId,
+            status: model.status
+        });
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        const updatedModels = models.map((model) =>
+            model.modelId === selectedModel?.modelId
+                ? { ...model, modelYear: editModelYear }
+                : model
+        );
+        setModels(updatedModels);
+        setEditModelYear(new Date().getFullYear());
+        setSelectedModel(null);
     };
 
     const handleBrandClick = (brand: Brand) => {
@@ -176,7 +209,7 @@ function CarBrandItem({ brand, onUpdateBrand}: CarBrandItemProps) {
                                     className={`model-item ${selectedModel?.modelId === model.modelId ? 'selected' : ''}`}
                                     onClick={() => handleModelClick(model)}
                                 >
-                                    <div className="model-name">{model.modelName}</div>
+                                    <div className="model-name">{model.modelName} {new Date(model.modelYear).getFullYear()}</div>
                                     <div
                                         className={`model-status ${getStatusClass(model.status)} status-clickable`}
                                         onMouseEnter={() => setShowModelStatusDropdown(model.modelId)}
@@ -241,31 +274,40 @@ function CarBrandItem({ brand, onUpdateBrand}: CarBrandItemProps) {
 
                     {/* Правая область - редактирование услуги */}
                     <div className="edit-section">
-                        <div className="section-title">✏️ Редактирование услуги</div>
-                        {!selectedService ? (
-                            <div className="placeholder">Выберите услугу</div>
+                        <div className="section-title">✏️ Редактирование услуги и модели</div>
+                        {!selectedService && !selectedModel? (
+                            <div className="placeholder">Выберите услугу или модель</div>
                         ) : (
                             <div className="edit-form">
-                                <div className="edit-field">
-                                    <label>Название услуги</label>
-                                    <input
-                                        type="text"
-                                        value={editServiceName}
-                                        onChange={(e) => setEditServiceName(e.target.value)}
-                                    />
-                                </div>
-                                <div className="edit-field">
-                                    <label>Цена (₽)</label>
-                                    <input
-                                        type="number"
-                                        value={editServicePrice}
-                                        onChange={(e) => setEditServicePrice(Number(e.target.value))}
-                                    />
-                                </div>
+                                {selectedModel && (
+                                    <>
+                                        <div className="edit-field">
+                                            <label>Год модели</label>
+                                            <input
+                                                type="number"
+                                                value={editModelYear}
+                                                onChange={(e) => setEditModelYear(Number(e.target.value))}/>
+                                        </div>
+                                        <button className="save-btn" onClick={() => handleSaveModel(selectedModel)}>
+                                            Сохранить
+                                        </button>
+                                    </>
+                                )}
 
-                                <button className="save-btn" onClick={handleSaveService}>
-                                    Сохранить
-                                </button>
+                                {selectedService && (
+                                    <>
+                                        <div className="edit-field">
+                                            <label>Цена (₽)</label>
+                                            <input
+                                                type="number"
+                                                value={editServicePrice}
+                                                onChange={(e) => setEditServicePrice(Number(e.target.value))}/>
+                                        </div>
+                                        <button className="save-btn" onClick={() => handleSaveService(selectedService)}>
+                                            Сохранить
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>

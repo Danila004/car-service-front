@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { ServiceRow } from '../types';
+import {Service, ServiceRow} from '../types';
 
 interface AddServiceItemModalProps {
     isOpen: boolean;
     onClose: () => void;
     onAdd: (serviceName: string) => void;
-    existingServices: ServiceRow[];
+    existingServices: Service[] | null;
 }
 
 function AddServiceItemModal({ isOpen, onClose, onAdd, existingServices }: AddServiceItemModalProps) {
@@ -20,8 +20,8 @@ function AddServiceItemModal({ isOpen, onClose, onAdd, existingServices }: AddSe
             return;
         }
 
-        const existingService = existingServices.find(
-            service => service.name.toLowerCase() === serviceName.trim().toLowerCase()
+        const existingService = existingServices?.find(
+            service => service.serviceName.toLowerCase() === serviceName.trim().toLowerCase()
         );
 
         if (existingService) {

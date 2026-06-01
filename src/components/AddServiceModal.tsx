@@ -98,7 +98,9 @@ function AddServiceModal({ isOpen, onClose, onAdd, existingBrands }: AddServiceM
             if (servicesForModel.find(serviceM => serviceM.serviceName === service.serviceName)) {
                 existServices.push(service);
             } else {
-                availServices.push({serviceId: service.serviceId,
+                availServices.push({
+                    priceId: 0,
+                    serviceId: service.serviceId,
                     serviceName: service.serviceName,
                     modelId: 0,
                     price : 0,
@@ -113,6 +115,7 @@ function AddServiceModal({ isOpen, onClose, onAdd, existingBrands }: AddServiceM
         if (checked) {
             setSelectedServices(prev => [...prev,
                 {
+                    priceId: 0,
                     serviceId: service.serviceId,
                     serviceName: service.serviceName,
                     modelId: selectedModelId,

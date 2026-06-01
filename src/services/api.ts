@@ -61,7 +61,7 @@ export const api = {
             body: JSON.stringify(model)});
     },
 
-    setModelStatus: async (model: Model): Promise<Response> => {
+    setModel: async (model: Model): Promise<Response> => {
         return await fetch(`${API_BASE_URL}/models`, {
             method: 'PUT',
             headers: {
@@ -80,7 +80,25 @@ export const api = {
         return await fetch(`${API_BASE_URL}/services${params}`);
     },
 
-    setPriceStatus: async (price: Price): Promise<Response> => {
+    addService: async (service: Service): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/services`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(service)});
+    },
+
+    setService: async (service: Service): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/services`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(service)});
+    },
+
+    setPrice: async (price: Price): Promise<Response> => {
         return await fetch(`${API_BASE_URL}/prices`, {
             method: 'PUT',
             headers: {

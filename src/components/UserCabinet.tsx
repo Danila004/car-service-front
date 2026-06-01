@@ -9,6 +9,7 @@ import { currentUser, mockOrders } from '../data/mockOrders';
 import {User, UserRole} from '../types';
 import {carsData} from "../data/carsData.ts";
 import CarsList from "./CarsList.tsx";
+import ServicesList from "./ServicesList.tsx";
 
 interface UserCabinetProps {
     onBackToHome: () => void;
@@ -74,7 +75,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
     }
 
     if (showServicesPage) {
-        return <ServicesPage onBack={handleBackFromServicesPage} />;
+        return <ServicesList onBack={handleBackFromServicesPage} />;
     }
 
     return (
