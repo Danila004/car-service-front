@@ -148,16 +148,10 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
 
             {isExpanded && (
                 <div className="user-item-expanded">
-                    {/* Основная информация */}
+                    {/* Статистика для клиента */}
                     <div className="user-expanded-section">
-                        <div className="section-title">📋 Контактная информация</div>
+                        <div className="section-title">📊 Статистика</div>
                         <div className="user-info-grid">
-                            {user.createdAt && (
-                                <div className="info-row">
-                                    <span className="info-label">Дата регистрации:</span>
-                                    <span className="info-value">{formatDate(user.createdAt)}</span>
-                                </div>
-                            )}
                             {user.lastVisit && (
                                 <div className="info-row">
                                     <span className="info-label">Последний визит:</span>
@@ -165,11 +159,7 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
                                 </div>
                             )}
                         </div>
-                    </div>
 
-                    {/* Статистика для клиента */}
-                    <div className="user-expanded-section">
-                        <div className="section-title">📊 Статистика</div>
                         <div className="user-stats">
                             <div className="stat-card">
                                 <div className="stat-value">{user.totalOrders || 0}</div>
