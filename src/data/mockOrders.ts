@@ -11,11 +11,11 @@ export const masters: Master[] = [
 
 // Текущий пользователь (клиент)
 export const currentUser: User = {
-    id: 1,
-    name: 'Алексей Иванов',
-    email: 'alexey@example.com',
-    role: 'admin',
-    phone: '+7 (999) 123-45-67'
+    userId: 1,
+    username: 'Алексей Иванов',
+    userType: 'admin',
+    phone: '+7 (999) 123-45-67',
+    workStatus: 'WORK'
 };
 
 // Генерация моковых заказов (50 штук для демонстрации пагинации)

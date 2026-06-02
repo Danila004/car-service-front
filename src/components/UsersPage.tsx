@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {User, UserRole} from '../types';
+import {User, UserRole, UserStatistics} from '../types';
 import UserItem from "./UserItem.tsx";
 import {useApi} from "../hooks/useApi.ts";
 import {api} from "../services/api.ts";
@@ -9,9 +9,10 @@ interface UsersPageProps {
 }
 
 function UsersPage({ onBack }: UsersPageProps) {
-    const { data: apiUsers, error: apiError } = useApi<User[]>(api.getUsers, "");
+    const { data: apiUsers, error: apiError } = useApi<User[]>(api.getUsers, "?userType=");
     const [users, setUsers] = useState<User[] | null>([]);
-    const [filterRole, setFilterRole] = useState<UserRole | ''>('');
+    const [error, setError] = useState<string>("");
+    const [selectedRole, setSelectedRole] = useState<string>("");
 
     useEffect(() => {
         setUsers(apiUsers);
@@ -24,23 +25,42 @@ function UsersPage({ onBack }: UsersPageProps) {
             setError(error);
             return;
         }
-        const newUserInDb : User = response.json();
+        const newUserInDb : User = await response.json();
         users?.map(u => {
             return u.userId === user.userId ? {...u, ...newUserInDb} : u;
         })
     };
 
-    const handleResetFilter = () => {
-        setFilterRole('');
+    const handleResetFilter = async () => {
+        const response = await api.getSimpleUsers("");
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        const allUsers : User[] = await response.json();
+        setUsers(allUsers);
+        setSelectedRole("");
     };
 
-    const getRoleLabel = (role: UserRole) => {
+    const handleFilterClick = async (role: string) => {
+        const response = await api.getSimpleUsers("?role=" + role);
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        const filteredUsers : User[] = await response.json();
+        setUsers(filteredUsers);
+    };
+
+    const getRoleLabel = (role: string) => {
         const labels = {
-            client: '👤 Клиент',
-            master: '🔧 Мастер',
-            admin: '👑 Администратор',
+            CLIENT: '👤 Клиент',
+            MASTER: '🔧 Мастер',
+            ADMIN: '👑 Администратор',
         };
-        return labels[role];
+        return labels[role as keyof typeof labels];
     };
 
     if (apiError) {
@@ -70,13 +90,13 @@ function UsersPage({ onBack }: UsersPageProps) {
                             <div className="user-filter-group">
                                 <label>Тип пользователя</label>
                                 <select
-                                    value={filterRole}
-                                    onChange={(e) => setFilterRole(e.target.value as UserRole | '')}
+                                    value={selectedRole}
+                                    onChange={(e) => handleFilterClick(e.target.value)}
                                 >
                                     <option value="">Все</option>
-                                    <option value="client">{getRoleLabel('client')}</option>
-                                    <option value="master">{getRoleLabel('master')}</option>
-                                    <option value="admin">{getRoleLabel('admin')}</option>
+                                    <option value="client">{getRoleLabel('CLIENT')}</option>
+                                    <option value="master">{getRoleLabel('MASTER')}</option>
+                                    <option value="admin">{getRoleLabel('ADMIN')}</option>
                                 </select>
                             </div>
                             <button className="user-reset-btn" onClick={handleResetFilter}>

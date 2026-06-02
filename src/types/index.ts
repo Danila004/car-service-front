@@ -125,15 +125,16 @@ export type WorkStatus = 'working' | 'sick' | 'not_working';
 export interface User {
     userId: number;
     username: string;
-    email: string;
-    role: string;
+    userType: string;
     phone: string;
     workStatus: string;
 }
 
 export interface UserStatistics {
     lastVisitDate: string;
-
+    countOrders: number;
+    price: number;
+    avgPrice: number;
 }
 
 // Мастер

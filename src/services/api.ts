@@ -1,7 +1,7 @@
 import type {
     Brand,
     CarDetails, Model, Price,
-    Service, ServiceWithPrice, User
+    Service, ServiceWithPrice, User, UserStatistics
 } from '../types';
 
 // Базовый URL API
@@ -149,5 +149,22 @@ export const api = {
     getUsers: async (params: string): Promise<User[]> => {
         const response = await fetch(`${API_BASE_URL}/users${params}`);
         return handleResponse<User[]>(response);
+    },
+
+    getSimpleUsers: async (params: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/users${params}`);
+    },
+
+    getUserStatistics: async (userId: number): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/users/${userId}`);
+    },
+
+    setUser: async (user: User): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/users`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(user)});
     },
 };

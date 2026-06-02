@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import {User, UserProfile} from '../types';
+import {User, UserStatistics} from '../types';
+import {api} from "../services/api.ts";
 
 interface UserItemProps {
-    user: UserProfile;
+    user: User;
     onUpdateUser: (user: User) => void;
 }
 
@@ -11,13 +12,7 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
     const [showStatusDropdown, setShowStatusDropdown] = useState<boolean>(false);
     const [showRoleDropdown, setShowRoleDropdown] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
-    const [userStatistics, setUserStatistics] = useState<UserStatictics | null>(null);
-
-    const formatDate = (dateString?: string) => {
-        if (!dateString) return '—';
-        const [year, month, day] = dateString.split('-');
-        return `${day}.${month}.${year}`;
-    };
+    const [userStatistics, setUserStatistics] = useState<UserStatistics | null>(null);
 
     const getRoleLabel = () => {
         const labels = {
@@ -25,7 +20,7 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
             MASTER: '🔧 Мастер',
             ADMIN: '👑 Администратор',
         };
-        return labels[user.role as keyof typeof labels];
+        return labels[user.userType as keyof typeof labels];
     };
 
     const getRoleClass = () => {
@@ -34,7 +29,7 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
             MASTER: 'role-master',
             ADMIN: 'role-admin',
         };
-        return classes[user.role as keyof typeof classes];
+        return classes[user.userType as keyof typeof classes];
     };
 
     const getWorkStatusLabel = () => {
@@ -61,38 +56,45 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
             userId: user.userId,
             username: user.username,
             email: user.email,
-            role: user.role,
+            userType: user.userType,
             phone: user.phone,
             workStatus: newWorkStatus
         });
         setShowStatusDropdown(false);
     };
 
-    const handleRoleChange = (newRole: string) => {
+    const handleRoleChange = (newUserType: string) => {
         onUpdateUser({
             userId: user.userId,
             username: user.username,
             email: user.email,
-            role: newRole,
+            userType: newUserType,
             phone: user.phone,
             workStatus: user.workStatus
         });
         setShowRoleDropdown(false);
     };
 
-    const handleUserClick = () => {
+    const handleUserClick = async () => {
         if(!isExpanded) {
-
+            const response = await api.getUserStatistics(user.userId);
+            if(!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                setError(error);
+                return;
+            }
+            const statistics : UserStatistics = await response.json();
+            setUserStatistics(statistics);
         }
         setIsExpanded(!isExpanded);
     };
 
     // Показывать ли статус (только для мастеров и админов)
-    const showWorkStatus = user.role === 'MASTER' || user.role === 'ADMIN';
+    const showWorkStatus = user.userType === 'MASTER' || user.userType === 'ADMIN';
 
     return (
         <div className={`user-item ${isExpanded ? 'expanded' : ''}`}>
-            <div className="user-item-header" onClick={() => }>
+            <div className="user-item-header" onClick={() => handleUserClick()}>
                 <div className="user-main-info">
                     <div className="user-name">{user.username}</div>
                     <div
@@ -160,7 +162,7 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
                             )}
                         </div>
                     )}
-                    {user.phone && <div className="user-phone">{user.phone}</div>}
+                    <div className="user-phone">{user.phone}</div>
                     <div className="expand-icon">{isExpanded ? '▲' : '▼'}</div>
                 </div>
             </div>
@@ -169,36 +171,28 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
                 <div className="user-item-expanded">
                     {/* Статистика для клиента */}
                     <div className="user-expanded-section">
-                        <div className="section-title">📋 Контактная информация</div>
-                        <div className="user-info-grid">
-                            {user.lastVisit && (
-                                <div className="info-row">
-                                    <span className="info-label">Последний визит:</span>
-                                    <span className="info-value">{formatDate(user.lastVisit)}</span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-
-                    <div className="user-expanded-section">
                         <div className="section-title">📊 Статистика</div>
+                        <div className="user-info-grid">
+                            <div className="info-row">
+                                <span className="info-label">Последний визит:</span>
+                                <span className="info-value">{userStatistics?.lastVisitDate ?? 0}</span>
+                            </div>
+                        </div>
+
                         <div className="user-stats">
                             <div className="stat-card">
-                                <div className="stat-value">{user.totalOrders || 0}</div>
+                                <div className="stat-value">{userStatistics?.countOrders}</div>
                                 <div className="stat-label">Всего заказов</div>
                             </div>
                             <div className="stat-card">
                                 <div className="stat-value">
-                                    {user.totalSpent ? user.totalSpent.toLocaleString() : 0} ₽
+                                    {userStatistics?.price} ₽
                                 </div>
                                 <div className="stat-label">Всего потрачено</div>
                             </div>
                             <div className="stat-card">
                                 <div className="stat-value">
-                                    {user.totalOrders && user.totalSpent
-                                        ? Math.round(user.totalSpent / user.totalOrders).toLocaleString()
-                                        : 0} ₽
+                                    {userStatistics?.avgPrice} ₽
                                 </div>
                                 <div className="stat-label">Средний чек</div>
                             </div>

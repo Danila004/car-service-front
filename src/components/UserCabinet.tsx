@@ -2,8 +2,6 @@ import { useState } from 'react';
 import OrderList from './OrderList';
 import MasterOrdersPage from './MasterOrdersPage';
 import UsersPage from './UsersPage';
-import CarsPage from './CarsPage';
-import ServicesPage from './ServicesPage';
 import CreateOrderModal from './CreateOrderModal.tsx';
 import { currentUser, mockOrders } from '../data/mockOrders';
 import {User, UserRole} from '../types';
@@ -18,7 +16,7 @@ interface UserCabinetProps {
 }
 
 function UserCabinet({ user, onLogout }: UserCabinetProps) {
-    const [userRole] = useState<UserRole>(currentUser.role);
+    const [userRole] = useState<string>(currentUser.userType);
     const [showMasterOrders, setShowMasterOrders] = useState<boolean>(false);
     const [showUsersPage, setShowUsersPage] = useState<boolean>(false);
     const [showCarsPage, setShowCarsPage] = useState<boolean>(false);
