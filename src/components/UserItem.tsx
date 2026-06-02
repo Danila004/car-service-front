@@ -1,15 +1,17 @@
 import { useState } from 'react';
-import {UserProfile, UserRole, WorkStatus} from '../types';
+import {User, UserProfile} from '../types';
 
 interface UserItemProps {
     user: UserProfile;
-    onUpdateUser?: (userId: number, updates: Partial<UserProfile>) => void;
+    onUpdateUser: (user: User) => void;
 }
 
 function UserItem({ user, onUpdateUser }: UserItemProps) {
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
     const [showStatusDropdown, setShowStatusDropdown] = useState<boolean>(false);
     const [showRoleDropdown, setShowRoleDropdown] = useState<boolean>(false);
+    const [error, setError] = useState<string>("");
+    const [userStatistics, setUserStatistics] = useState<UserStatictics | null>(null);
 
     const formatDate = (dateString?: string) => {
         if (!dateString) return '—';
@@ -19,63 +21,80 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
 
     const getRoleLabel = () => {
         const labels = {
-            client: '👤 Клиент',
-            master: '🔧 Мастер',
-            admin: '👑 Администратор',
+            CLIENT: '👤 Клиент',
+            MASTER: '🔧 Мастер',
+            ADMIN: '👑 Администратор',
         };
-        return labels[user.role];
+        return labels[user.role as keyof typeof labels];
     };
 
     const getRoleClass = () => {
         const classes = {
-            client: 'role-client',
-            master: 'role-master',
-            admin: 'role-admin',
+            CLIENT: 'role-client',
+            MASTER: 'role-master',
+            ADMIN: 'role-admin',
         };
-        return classes[user.role];
+        return classes[user.role as keyof typeof classes];
     };
 
-    const getWorkStatusLabel = (status?: WorkStatus) => {
+    const getWorkStatusLabel = () => {
         const labels = {
-            working: '✅ Работает',
-            sick: '🤒 Болеет',
-            not_working: '❌ Не работает',
+            WORK: '✅ Работает',
+            SICK: '🤒 Болеет',
+            NOT_WORK: '❌ Не работает',
         };
-        return status ? labels[status] : '';
+        return labels[user.workStatus as keyof typeof labels];
     };
 
-    const getWorkStatusClass = (status?: WorkStatus) => {
+    const getWorkStatusClass = () => {
         const classes = {
-            working: 'status-working',
-            sick: 'status-sick',
-            not_working: 'status-not-working',
+            WORK: 'status-working',
+            SICK: 'status-sick',
+            NOT_WORK: 'status-not-working',
         };
-        return status ? classes[status] : '';
+        return classes[user.workStatus as keyof typeof classes];
     };
 
 
-    const handleStatusChange = (newStatus: WorkStatus) => {
-        if (onUpdateUser) {
-            onUpdateUser(user.id, { workStatus: newStatus });
-        }
+    const handleStatusChange = (newWorkStatus: string) => {
+        onUpdateUser({
+            userId: user.userId,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            phone: user.phone,
+            workStatus: newWorkStatus
+        });
         setShowStatusDropdown(false);
     };
 
-    const handleRoleChange = (newRole: UserRole) => {
-        if (onUpdateUser) {
-            onUpdateUser(user.id, { role: newRole });
-        }
+    const handleRoleChange = (newRole: string) => {
+        onUpdateUser({
+            userId: user.userId,
+            username: user.username,
+            email: user.email,
+            role: newRole,
+            phone: user.phone,
+            workStatus: user.workStatus
+        });
         setShowRoleDropdown(false);
     };
 
+    const handleUserClick = () => {
+        if(!isExpanded) {
+
+        }
+        setIsExpanded(!isExpanded);
+    };
+
     // Показывать ли статус (только для мастеров и админов)
-    const showWorkStatus = user.role === 'master' || user.role === 'admin';
+    const showWorkStatus = user.role === 'MASTER' || user.role === 'ADMIN';
 
     return (
         <div className={`user-item ${isExpanded ? 'expanded' : ''}`}>
-            <div className="user-item-header" onClick={() => setIsExpanded(!isExpanded)}>
+            <div className="user-item-header" onClick={() => }>
                 <div className="user-main-info">
-                    <div className="user-name">{user.name}</div>
+                    <div className="user-name">{user.username}</div>
                     <div
                         className={`user-role-badge ${getRoleClass()} role-clickable`}
                         onMouseEnter={() => setShowRoleDropdown(true)}
@@ -87,19 +106,19 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
                             <div className="dropdown-menu">
                                 <div
                                     className="dropdown-item"
-                                    onClick={() => handleRoleChange('client')}
+                                    onClick={() => handleRoleChange('CLIENT')}
                                 >
                                     👤 Клиент
                                 </div>
                                 <div
                                     className="dropdown-item"
-                                    onClick={() => handleRoleChange('master')}
+                                    onClick={() => handleRoleChange('MASTER')}
                                 >
                                     🔧 Мастер
                                 </div>
                                 <div
                                     className="dropdown-item"
-                                    onClick={() => handleRoleChange('admin')}
+                                    onClick={() => handleRoleChange('ADMIN')}
                                 >
                                     👑 Администратор
                                 </div>
@@ -111,29 +130,29 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
                 <div className="user-details-info">
                     {showWorkStatus && user.workStatus && (
                         <div
-                            className={`work-status ${getWorkStatusClass(user.workStatus)} status-clickable`}
+                            className={`work-status ${getWorkStatusClass()} status-clickable`}
                             onMouseEnter={() => setShowStatusDropdown(true)}
                             onMouseLeave={() => setShowStatusDropdown(false)}
                             onClick={(e) => e.stopPropagation()}
                         >
-                            {getWorkStatusLabel(user.workStatus)}
+                            {getWorkStatusLabel()}
                             {showStatusDropdown && (
                                 <div className="dropdown-menu status-dropdown">
                                     <div
                                         className="dropdown-item"
-                                        onClick={() => handleStatusChange('working')}
+                                        onClick={() => handleStatusChange('WORK')}
                                     >
                                         ✅ Работает
                                     </div>
                                     <div
                                         className="dropdown-item"
-                                        onClick={() => handleStatusChange('sick')}
+                                        onClick={() => handleStatusChange('SICK')}
                                     >
                                         🤒 Болеет
                                     </div>
                                     <div
                                         className="dropdown-item"
-                                        onClick={() => handleStatusChange('not_working')}
+                                        onClick={() => handleStatusChange('NOT_WORK')}
                                     >
                                         ❌ Не работает
                                     </div>
@@ -148,16 +167,10 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
 
             {isExpanded && (
                 <div className="user-item-expanded">
-                    {/* Основная информация */}
+                    {/* Статистика для клиента */}
                     <div className="user-expanded-section">
                         <div className="section-title">📋 Контактная информация</div>
                         <div className="user-info-grid">
-                            {user.createdAt && (
-                                <div className="info-row">
-                                    <span className="info-label">Дата регистрации:</span>
-                                    <span className="info-value">{formatDate(user.createdAt)}</span>
-                                </div>
-                            )}
                             {user.lastVisit && (
                                 <div className="info-row">
                                     <span className="info-label">Последний визит:</span>
@@ -167,7 +180,7 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
                         </div>
                     </div>
 
-                    {/* Статистика для клиента */}
+
                     <div className="user-expanded-section">
                         <div className="section-title">📊 Статистика</div>
                         <div className="user-stats">

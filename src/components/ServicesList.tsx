@@ -34,7 +34,6 @@ function ServicesList({ onBack }: ServicesListProps) {
             serviceName: service.serviceName,
             status: newStatus
         });
-        console.log(response)
         if(!response.ok) {
             const error = await response.json().catch(() => ({}));
             setError(error);

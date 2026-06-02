@@ -1,7 +1,7 @@
 import type {
     Brand,
     CarDetails, Model, Price,
-    Service, ServiceWithPrice
+    Service, ServiceWithPrice, User
 } from '../types';
 
 // Базовый URL API
@@ -144,5 +144,10 @@ export const api = {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(prices)});
+    },
+
+    getUsers: async (params: string): Promise<User[]> => {
+        const response = await fetch(`${API_BASE_URL}/users${params}`);
+        return handleResponse<User[]>(response);
     },
 };

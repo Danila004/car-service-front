@@ -123,19 +123,17 @@ export type WorkStatus = 'working' | 'sick' | 'not_working';
 
 // Данные пользователя
 export interface User {
-    id: number;
-    name: string;
+    userId: number;
+    username: string;
     email: string;
-    role: UserRole;
-    phone?: string;
-    workStatus?: WorkStatus;
+    role: string;
+    phone: string;
+    workStatus: string;
 }
 
-export interface UserProfile extends User {
-    createdAt?: string;
-    lastVisit?: string;
-    totalOrders?: number;
-    totalSpent?: number;
+export interface UserStatistics {
+    lastVisitDate: string;
+
 }
 
 // Мастер
