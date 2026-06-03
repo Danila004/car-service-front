@@ -18,17 +18,12 @@ function UsersPage({ onBack }: UsersPageProps) {
         setUsers(apiUsers);
     }, [apiUsers]);
     
-    const handleUpdateUser = async (user: User) => {
-        const response = await api.setUser(user);
-        if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            setError(error);
-            return;
-        }
-        const newUserInDb : User = await response.json();
-        users?.map(u => {
-            return u.userId === user.userId ? {...u, ...newUserInDb} : u;
-        })
+    const handleUpdateUser = (user: User) => {
+        setUsers(prev => (prev ?? []).map(u =>
+            u.authUserId === user.authUserId
+                ? { ...u, ...user }
+                : u
+        ));
     };
 
     const handleResetFilter = async () => {
@@ -44,13 +39,14 @@ function UsersPage({ onBack }: UsersPageProps) {
     };
 
     const handleFilterClick = async (role: string) => {
-        const response = await api.getSimpleUsers("?role=" + role);
+        const response = await api.getSimpleUsers("?userType=" + role);
         if(!response.ok) {
             const error = await response.json().catch(() => ({}));
             setError(error);
             return;
         }
         const filteredUsers : User[] = await response.json();
+        setSelectedRole(role);
         setUsers(filteredUsers);
     };
 
@@ -94,9 +90,9 @@ function UsersPage({ onBack }: UsersPageProps) {
                                     onChange={(e) => handleFilterClick(e.target.value)}
                                 >
                                     <option value="">Все</option>
-                                    <option value="client">{getRoleLabel('CLIENT')}</option>
-                                    <option value="master">{getRoleLabel('MASTER')}</option>
-                                    <option value="admin">{getRoleLabel('ADMIN')}</option>
+                                    <option value="CLIENT">{getRoleLabel('CLIENT')}</option>
+                                    <option value="MASTER">{getRoleLabel('MASTER')}</option>
+                                    <option value="ADMIN">{getRoleLabel('ADMIN')}</option>
                                 </select>
                             </div>
                             <button className="user-reset-btn" onClick={handleResetFilter}>
@@ -107,7 +103,7 @@ function UsersPage({ onBack }: UsersPageProps) {
 
                     <div className="user-list">
                         {users?.map((user) => (
-                            <UserItem key={user.userId} user={user} onUpdateUser={handleUpdateUser} />
+                            <UserItem key={user.authUserId} user={user} onUpdateUser={handleUpdateUser} />
                         ))}
                     </div>
                 </div>

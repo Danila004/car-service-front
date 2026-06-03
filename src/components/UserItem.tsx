@@ -51,33 +51,51 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
     };
 
 
-    const handleStatusChange = (newWorkStatus: string) => {
+    const handleStatusChange = async (newWorkStatus: string) => {
+        const response = await api.setWorkStatus(user.authUserId, newWorkStatus);
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
         onUpdateUser({
-            userId: user.userId,
-            username: user.username,
-            email: user.email,
+            authUserId: user.authUserId,
+            userName: user.userName,
+            phoneNumber: user.phoneNumber,
             userType: user.userType,
-            phone: user.phone,
             workStatus: newWorkStatus
         });
         setShowStatusDropdown(false);
     };
 
-    const handleRoleChange = (newUserType: string) => {
+    const handleRoleChange = async (newUserType: string) => {
+        const response = await api.setUserType(user.authUserId, newUserType);
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        if(user.userType === 'CLIENT') {
+            const response = await api.setWorkStatus(user.authUserId, 'WORK');
+            if(!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                setError(error);
+                return;
+            }
+        }
         onUpdateUser({
-            userId: user.userId,
-            username: user.username,
-            email: user.email,
+            authUserId: user.authUserId,
+            userName: user.userName,
+            phoneNumber: user.phoneNumber,
             userType: newUserType,
-            phone: user.phone,
-            workStatus: user.workStatus
+            workStatus: (user.userType === 'CLIENT' ? 'WORK' : user.workStatus)
         });
         setShowRoleDropdown(false);
     };
 
     const handleUserClick = async () => {
         if(!isExpanded) {
-            const response = await api.getUserStatistics(user.userId);
+            const response = await api.getUserStatistics(user.authUserId);
             if(!response.ok) {
                 const error = await response.json().catch(() => ({}));
                 setError(error);
@@ -96,7 +114,7 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
         <div className={`user-item ${isExpanded ? 'expanded' : ''}`}>
             <div className="user-item-header" onClick={() => handleUserClick()}>
                 <div className="user-main-info">
-                    <div className="user-name">{user.username}</div>
+                    <div className="user-name">{user.userName}</div>
                     <div
                         className={`user-role-badge ${getRoleClass()} role-clickable`}
                         onMouseEnter={() => setShowRoleDropdown(true)}
@@ -162,7 +180,7 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
                             )}
                         </div>
                     )}
-                    <div className="user-phone">{user.phone}</div>
+                    <div className="user-phone">{user.phoneNumber}</div>
                     <div className="expand-icon">{isExpanded ? '▲' : '▼'}</div>
                 </div>
             </div>
@@ -175,7 +193,7 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
                         <div className="user-info-grid">
                             <div className="info-row">
                                 <span className="info-label">Последний визит:</span>
-                                <span className="info-value">{userStatistics?.lastVisitDate ?? 0}</span>
+                                <span className="info-value">{userStatistics?.lastVisitDate ?? '-'}</span>
                             </div>
                         </div>
 

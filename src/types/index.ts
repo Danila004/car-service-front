@@ -123,10 +123,10 @@ export type WorkStatus = 'working' | 'sick' | 'not_working';
 
 // Данные пользователя
 export interface User {
-    userId: number;
-    username: string;
+    authUserId: number;
+    userName: string;
     userType: string;
-    phone: string;
+    phoneNumber: string;
     workStatus: string;
 }
 

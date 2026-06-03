@@ -156,15 +156,24 @@ export const api = {
     },
 
     getUserStatistics: async (userId: number): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/users/${userId}`);
+        return await fetch(`${API_BASE_URL}/users/${userId}/statistics`);
     },
 
-    setUser: async (user: User): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/users`, {
-            method: 'PUT',
+    setUserType: async (userId: number, newUserType: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/users/${userId}/setUserType`, {
+            method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(user)});
+            body: JSON.stringify(newUserType)});
+    },
+
+    setWorkStatus: async (userId: number, newWorkStatus: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/users/${userId}/setWorkStatus`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newWorkStatus)});
     },
 };
