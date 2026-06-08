@@ -148,9 +148,8 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
                 <div className="cabinet-user-info">
                     <div className="user-avatar">👤</div>
                     <div className="user-details">
-                        <h3>{user.name}</h3>
-                        <p>{user.email}</p>
-                        {user.phone && <p>{user.phone}</p>}
+                        <h3>{user.userName}</h3>
+                        {user.phoneNumber && <p>{user.phoneNumber}</p>}
                     </div>
                 </div>
 

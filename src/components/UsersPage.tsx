@@ -12,6 +12,7 @@ function UsersPage({ onBack }: UsersPageProps) {
     const { data: apiUsers, error: apiError } = useApi<User[]>(api.getUsers, "?userType=");
     const [users, setUsers] = useState<User[] | null>([]);
     const [error, setError] = useState<string>("");
+    const [inputPhone, setInputPhone] = useState<string>("");
     const [selectedRole, setSelectedRole] = useState<string>("");
 
     useEffect(() => {
@@ -36,6 +37,7 @@ function UsersPage({ onBack }: UsersPageProps) {
         const allUsers : User[] = await response.json();
         setUsers(allUsers);
         setSelectedRole("");
+        setInputPhone("");
     };
 
     const handleFilterClick = async (role: string) => {
@@ -49,6 +51,22 @@ function UsersPage({ onBack }: UsersPageProps) {
         setSelectedRole(role);
         setUsers(filteredUsers);
     };
+
+    const handleChangePhone = async (phoneNumber: string) => {
+        setInputPhone(phoneNumber);
+        if(phoneNumber.length != 11) {
+            return;
+        }
+
+        const response = await api.findUserByPhone("?phoneNumber=" + phoneNumber);
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        const user : User = await response.json();
+        setUsers([user]);
+    }
 
     const getRoleLabel = (role: string) => {
         const labels = {
@@ -86,6 +104,7 @@ function UsersPage({ onBack }: UsersPageProps) {
                             <div className="user-filter-group">
                                 <label>Тип пользователя</label>
                                 <select
+                                    disabled={inputPhone.length != 0}
                                     value={selectedRole}
                                     onChange={(e) => handleFilterClick(e.target.value)}
                                 >
@@ -95,6 +114,17 @@ function UsersPage({ onBack }: UsersPageProps) {
                                     <option value="ADMIN">{getRoleLabel('ADMIN')}</option>
                                 </select>
                             </div>
+
+                            <div className="user-filter-group">
+                                <label>Номер телефона</label>
+                                <input
+                                    type="text"
+                                    placeholder="89009009090"
+                                    value={inputPhone}
+                                    onChange={(e) => handleChangePhone(e.target.value)}
+                                />
+                            </div>
+
                             <button className="user-reset-btn" onClick={handleResetFilter}>
                                 Сбросить
                             </button>
@@ -102,9 +132,10 @@ function UsersPage({ onBack }: UsersPageProps) {
                     </div>
 
                     <div className="user-list">
-                        {users?.map((user) => (
-                            <UserItem key={user.authUserId} user={user} onUpdateUser={handleUpdateUser} />
-                        ))}
+                        {users?.some(user => user === null) ? ("Не найдено") : (
+                            users?.map((user) => (
+                            <UserItem user={user} onUpdateUser={handleUpdateUser} />
+                        )))}
                     </div>
                 </div>
             </div>

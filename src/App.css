@@ -1188,6 +1188,19 @@ body {
     letter-spacing: 0.3px;
 }
 
+.user-filter-group input {
+    padding: 10px 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 14px;
+    min-width: 150px;
+}
+
+.user-filter-group input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
 .user-filter-group select {
     padding: 10px 14px;
     border: 1px solid #e0e0e0;

@@ -159,6 +159,10 @@ export const api = {
         return await fetch(`${API_BASE_URL}/users/${userId}/statistics`);
     },
 
+    findUserByPhone: async (phoneNumber: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/users/find${phoneNumber}`);
+    },
+
     setUserType: async (userId: number, newUserType: string): Promise<Response> => {
         return await fetch(`${API_BASE_URL}/users/${userId}/setUserType`, {
             method: 'PATCH',
