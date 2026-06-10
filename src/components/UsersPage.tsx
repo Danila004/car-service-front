@@ -1,5 +1,5 @@
-import {useEffect, useState} from 'react';
-import {User, UserRole, UserStatistics} from '../types';
+import React, {useEffect, useState} from 'react';
+import {PageUsers, User, UserRole, UserStatistics} from '../types';
 import UserItem from "./UserItem.tsx";
 import {useApi} from "../hooks/useApi.ts";
 import {api} from "../services/api.ts";
@@ -9,14 +9,18 @@ interface UsersPageProps {
 }
 
 function UsersPage({ onBack }: UsersPageProps) {
-    const { data: apiUsers, error: apiError } = useApi<User[]>(api.getUsers, "?userType=");
+    const { data: apiUsers, error: apiError } = useApi<PageUsers>(api.getUsers, "?userType=&page=0");
     const [users, setUsers] = useState<User[] | null>([]);
     const [error, setError] = useState<string>("");
     const [inputPhone, setInputPhone] = useState<string>("");
     const [selectedRole, setSelectedRole] = useState<string>("");
+    const [moreButton, setMoreButton] = useState<boolean>(false);
+    const [currentPage, setCurrentPage] = useState<number>(0);
 
-    useEffect(() => {
-        setUsers(apiUsers);
+    React.useEffect(() => {
+        setUsers(apiUsers?.users ?? null);
+        if(apiUsers?.totalPages || apiUsers?.pageNumber !== apiUsers?.pageNumber)
+            setMoreButton(true);
     }, [apiUsers]);
     
     const handleUpdateUser = (user: User) => {
@@ -28,28 +32,33 @@ function UsersPage({ onBack }: UsersPageProps) {
     };
 
     const handleResetFilter = async () => {
-        const response = await api.getSimpleUsers("");
+        const response = await api.getSimpleUsers("?userType=" + "&page=0");
         if(!response.ok) {
             const error = await response.json().catch(() => ({}));
             setError(error);
             return;
         }
-        const allUsers : User[] = await response.json();
-        setUsers(allUsers);
+        const allPageUsers : PageUsers = await response.json();
+        setUsers(allPageUsers.users);
         setSelectedRole("");
         setInputPhone("");
+        setCurrentPage(0);
     };
 
     const handleFilterClick = async (role: string) => {
-        const response = await api.getSimpleUsers("?userType=" + role);
+        const response = await api.getSimpleUsers("?userType=" + role + "&page=0");
         if(!response.ok) {
             const error = await response.json().catch(() => ({}));
             setError(error);
             return;
         }
-        const filteredUsers : User[] = await response.json();
+
+        const filteredPageUsers : PageUsers = await response.json();
         setSelectedRole(role);
-        setUsers(filteredUsers);
+        setUsers(filteredPageUsers.users);
+        if(filteredPageUsers.pageNumber + 1 === filteredPageUsers.totalPages)
+            setMoreButton(false);
+        setCurrentPage(0);
     };
 
     const handleChangePhone = async (phoneNumber: string) => {
@@ -66,7 +75,21 @@ function UsersPage({ onBack }: UsersPageProps) {
         }
         const user : User = await response.json();
         setUsers([user]);
-    }
+    };
+
+    const handleMoreButtonClick = async () => {
+        const response = await api.getSimpleUsers("?userType=" + selectedRole + "&page=" + (currentPage + 1));
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        const userPage : PageUsers = await response.json();
+        setUsers(prev => [...(prev ?? []), ...userPage.users]);
+        if(userPage.pageNumber + 1 === userPage.totalPages)
+            setMoreButton(false);
+        setCurrentPage(currentPage + 1);
+    };
 
     const getRoleLabel = (role: string) => {
         const labels = {
@@ -136,7 +159,15 @@ function UsersPage({ onBack }: UsersPageProps) {
                             users?.map((user) => (
                             <UserItem user={user} onUpdateUser={handleUpdateUser} />
                         )))}
+
+                        {moreButton && (
+                            <button className="user-more-btn" onClick={handleMoreButtonClick}>
+                                Еще
+                            </button>
+                        )}
                     </div>
+
+
                 </div>
             </div>
         </div>

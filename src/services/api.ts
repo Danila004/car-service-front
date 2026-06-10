@@ -1,6 +1,6 @@
 import type {
     Brand,
-    CarDetails, Model, Price,
+    CarDetails, Model, PageUsers, Price,
     Service, ServiceWithPrice, User, UserStatistics
 } from '../types';
 
@@ -13,6 +13,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
         const error = await response.json().catch(() => ({}));
         throw new Error(error.message || `HTTP error! status: ${response.status}`);
     }
+    console.log(response);
     return response.json().then(data => data.content ?? data);
 };
 
@@ -146,9 +147,9 @@ export const api = {
             body: JSON.stringify(prices)});
     },
 
-    getUsers: async (params: string): Promise<User[]> => {
+    getUsers: async (params: string): Promise<PageUsers> => {
         const response = await fetch(`${API_BASE_URL}/users${params}`);
-        return handleResponse<User[]>(response);
+        return handleResponse<PageUsers>(response);
     },
 
     getSimpleUsers: async (params: string): Promise<Response> => {

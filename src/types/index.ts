@@ -1,3 +1,5 @@
+import {n} from "vite/dist/node/chunks/moduleRunnerTransport";
+
 export interface CarModel {
     id: number;
     name: string;
@@ -135,6 +137,12 @@ export interface UserStatistics {
     countOrders: number;
     price: number;
     avgPrice: number;
+}
+
+export interface PageUsers {
+    users: User[];
+    pageNumber: number;
+    totalPages: number;
 }
 
 // Мастер

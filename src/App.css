@@ -1247,6 +1247,23 @@ body {
     gap: 12px;
 }
 
+.user-more-btn {
+    align-items: center;
+    padding: 16px 20px;
+    cursor: pointer;
+    background: white;
+    border-radius: 16px;
+    border: none;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin-top: 12px;
+}
+
+.user-more-btn:hover {
+    background: #fafbfc;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
 /* Элемент пользователя */
 .user-item {
     background: white;
