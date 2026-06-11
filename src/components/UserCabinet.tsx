@@ -90,7 +90,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
                     </div>
 
 
-                    {(userRole === 'master') && (
+                    {userRole === 'master' && (
                         <div className="cabinet-square-panel" onClick={handleMasterOrders}>
                             <div className="square-content">
                                 <span className="square-icon">🔧</span>
