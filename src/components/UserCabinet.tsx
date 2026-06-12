@@ -1,13 +1,14 @@
-import { useState } from 'react';
-import OrderList from './OrderList';
+import React, { useState } from 'react';
 import MasterOrdersPage from './MasterOrdersPage';
 import UsersPage from './UsersPage';
 import CreateOrderModal from './CreateOrderModal.tsx';
-import { currentUser, mockOrders } from '../data/mockOrders';
-import {User, UserRole} from '../types';
+import {Order, PageOrders, User} from '../types';
 import {carsData} from "../data/carsData.ts";
 import CarsList from "./CarsList.tsx";
 import ServicesList from "./ServicesList.tsx";
+import OrderItem from "./OrderItem.tsx";
+import {useApi} from "../hooks/useApi.ts";
+import {api} from "../services/api.ts";
 
 interface UserCabinetProps {
     onBackToHome: () => void;
@@ -16,12 +17,88 @@ interface UserCabinetProps {
 }
 
 function UserCabinet({ user, onLogout }: UserCabinetProps) {
-    const [userRole] = useState<string>(currentUser.userType);
+    const { data: apiOrders, error: apiError } = useApi<PageOrders>(api.getOrdersForUser, "?userId=" + user.authUserId +
+        "&stateNumber=&start=&end=&page=0");
+    const [orders, setOrders] = useState<Order[] | null>([]);
+    const [error, setError] = useState<string>("");
+    const [moreButton, setMoreButton] = useState<boolean>(false);
+    const [currentPage, setCurrentPage] = useState<number>(0);
+    const [inputDateFrom, setInputDateFrom] = useState<string>("");
+    const [inputDateTo, setInputDateTo] = useState<string>("");
+    const [inputStateNumber, setInputStateNumber] = useState<string>("");
     const [showMasterOrders, setShowMasterOrders] = useState<boolean>(false);
     const [showUsersPage, setShowUsersPage] = useState<boolean>(false);
     const [showCarsPage, setShowCarsPage] = useState<boolean>(false);
     const [showServicesPage, setShowServicesPage] = useState<boolean>(false);
     const [showCreateOrderModal, setShowCreateOrderModal] = useState<boolean>(false);
+
+    React.useEffect(() => {
+        setOrders(apiOrders?.orders ?? null);
+        if(apiOrders?.totalPages || apiOrders?.pageNumber !== apiOrders?.pageNumber)
+            setMoreButton(true);
+    }, [apiOrders]);
+
+    const handleFilterClick = async () => {
+        const response = await api.getSimpleOrders("?userId=" + user.authUserId +
+            "&stateNumber=" + inputStateNumber +
+            "&start=" + inputDateFrom +
+            "&end=" + inputDateTo +
+            "&page=0");
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        const orderPage : PageOrders = await response.json();
+        setOrders(orderPage.orders);
+        if(orderPage.pageNumber + 1 === orderPage.totalPages)
+            setMoreButton(false);
+        setCurrentPage(0);
+    };
+
+    const handleFilterReset = async () => {
+        const response = await api.getSimpleOrders("?userId=" + user.authUserId +
+            "&stateNumber=&start=&end=&page=0");
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        const orderPage : PageOrders = await response.json();
+        setOrders(orderPage.orders);
+        if(orderPage.pageNumber + 1 === orderPage.totalPages)
+            setMoreButton(false);
+        setInputStateNumber("");
+        setCurrentPage(0);
+    };
+
+    const handleMoreButtonClick = async () => {
+        const response = await api.getSimpleOrders("?userId=" + user.authUserId +
+            "&stateNumber=" + inputStateNumber +
+            "&start=" + inputDateFrom +
+            "&end=" + inputDateTo +
+            "&page=" + (currentPage + 1));
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        const orderPage : PageOrders = await response.json();
+        setOrders(prev => [...(prev ?? []), ...orderPage.orders]);
+        if(orderPage.pageNumber + 1 === orderPage.totalPages)
+            setMoreButton(false);
+        setCurrentPage(currentPage + 1);
+    };
+
+    const handleDeleteOrder = async (orderId: number) => {
+        const response = await api.deleteOrder(orderId);
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        setOrders(prev => (prev ?? []).filter(order => order.orderId !== orderId))
+    };
 
     // Временные заглушки для кнопок (позже реализуем)
     const handleMasterOrders = () => {
@@ -76,6 +153,16 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
         return <ServicesList onBack={handleBackFromServicesPage} />;
     }
 
+    if (apiError) {
+        return (
+            <div className="brand-panel error-panel">
+                <div className="panel-header">
+                    <span>⚠️ Ошибка загрузки данных: {apiError}</span>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="user-cabinet">
             <div className="cabinet-container">
@@ -90,7 +177,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
                     </div>
 
 
-                    {(userRole === 'master') && (
+                    {user.userType === 'MASTER' && (
                         <div className="cabinet-square-panel" onClick={handleMasterOrders}>
                             <div className="square-content">
                                 <span className="square-icon">🔧</span>
@@ -99,7 +186,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
                         </div>
                     )}
 
-                    {userRole === 'admin' && (
+                    {user.userType === 'ADMIN' && (
                         <div className="cabinet-square-panel" onClick={handleAdminUsers}>
                             <div className="square-content">
                                 <span className="square-icon">👥</span>
@@ -115,7 +202,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
                         </div>
                     </div>
 
-                    {userRole === 'admin' && (
+                    {user.userType === 'ADMIN' && (
                         <div className="cabinet-square-panel" onClick={handleGeneralOrders}>
                             <div className="square-content">
                                 <span className="square-icon">📊</span>
@@ -124,7 +211,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
                         </div>
                     )}
 
-                    {userRole === 'admin' && (
+                    {user.userType === 'ADMIN' && (
                         <div className="cabinet-square-panel" onClick={handleCarsManagement}>
                             <div className="square-content">
                                 <span className="square-icon">🚗</span>
@@ -133,7 +220,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
                         </div>
                     )}
 
-                    {userRole === 'admin' && (
+                    {user.userType === 'ADMIN' && (
                         <div className="cabinet-square-panel" onClick={handleServicesManagement}>
                             <div className="square-content">
                                 <span className="square-icon">🔧</span>
@@ -149,12 +236,64 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
                     <div className="user-avatar">👤</div>
                     <div className="user-details">
                         <h3>{user.userName}</h3>
-                        {user.phoneNumber && <p>{user.phoneNumber}</p>}
+                        <p>{user.phoneNumber}</p>
                     </div>
                 </div>
 
-                {/* Список заказов */}
-                <OrderList orders={mockOrders} userRole={userRole} />
+                <div className="order-list-container">
+                    <div className="order-filters">
+                        <div className="filters-title">📋 Мои записи</div>
+                        <div className="filters-row">
+                            <div className="filter-group">
+                                <label>Регистрационный номер</label>
+                                <input
+                                    type="text"
+                                    placeholder="А123ВС"
+                                    value={inputStateNumber}
+                                    onChange={(e) => setInputStateNumber(e.target.value)}
+                                />
+                            </div>
+                            <div className="filter-group">
+                                <label>Дата от</label>
+                                <input
+                                    type="date"
+                                    value={inputDateFrom}
+                                    onChange={(e) => setInputDateFrom(e.target.value)}
+                                />
+                            </div>
+                            <div className="filter-group">
+                                <label>Дата до</label>
+                                <input
+                                    type="date"
+                                    value={inputDateTo}
+                                    onChange={(e) => setInputDateTo(e.target.value)}
+                                />
+                            </div>
+                            <div className="filter-buttons">
+                                <button className="apply-btn" onClick={handleFilterClick}>Применить</button>
+                                <button className="reset-btn" onClick={handleFilterReset}>Сбросить</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="order-list">
+                        {orders?.length ? (
+                            <div className="empty-orders">Нет записей</div>
+                        ) : (
+                            <>
+                                {orders?.map((order) => (
+                                    <OrderItem key={order.orderId} order={order} onDeleteOrder={handleDeleteOrder}/>
+                                ))}
+                            </>
+                        )}
+
+                        {moreButton && (
+                            <button className="user-more-btn" onClick={handleMoreButtonClick}>
+                                Еще
+                            </button>
+                        )}
+                    </div>
+                </div>
 
                 <CreateOrderModal
                     isOpen={showCreateOrderModal}

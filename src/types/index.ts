@@ -1,5 +1,3 @@
-import {n} from "vite/dist/node/chunks/moduleRunnerTransport";
-
 export interface CarModel {
     id: number;
     name: string;
@@ -15,24 +13,10 @@ export interface Model {
     status: string;
 }
 
-// Марка автомобиля
-/*export interface Brand {
-    id: number;
-    name: string;
-    models: CarModel[];
-}*/
-
 export interface Brand {
     brandId: number;
     brandName: string;
     status: string;
-}
-
-// Доступный автомобиль для услуги (из API)
-export interface AvailableCar {
-    brandId: number;
-    modelId: number;
-    price: number;
 }
 
 // Услуга
@@ -40,13 +24,6 @@ export interface Service {
     serviceId: number;
     serviceName: string;
     status: string;
-}
-
-export interface CarToHomepage {
-    brandName: string;
-    modelName: string;
-    modelYear: number;
-    price: number;
 }
 
 // Детальная информация об автомобиле
@@ -57,11 +34,6 @@ export interface CarDetails {
     modelId: number;
     year: number;
     basePrice: number;
-}
-
-// Автомобиль с ценой услуги (для отображения)
-export interface CarWithServicePrice extends CarDetails {
-    servicePrice: number;
 }
 
 // Услуга с ценой для конкретной модели
@@ -80,13 +52,6 @@ export interface Price {
     modelId: number;
     price: number;
     status: string;
-}
-
-
-export interface AddServiceForModel {
-    serviceId: number;
-    modelId: number;
-    price: number;
 }
 
 export interface SelectedService {
@@ -115,14 +80,6 @@ export interface ApiState<T> {
     error: string | null;
 }
 
-// ===== Для личного кабинета =====
-
-// Роли пользователей
-export type UserRole = 'client' | 'master' | 'admin';
-
-// Статус работы для мастеров и админов
-export type WorkStatus = 'working' | 'sick' | 'not_working';
-
 // Данные пользователя
 export interface User {
     authUserId: number;
@@ -145,33 +102,37 @@ export interface PageUsers {
     totalPages: number;
 }
 
-// Мастер
-export interface Master {
-    id: number;
-    name: string;
-    specialty: string;
-    comment?: string;
-}
-
 // Статус заказа
 export type OrderStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
 
 // Заказ
 export interface Order {
-    id: number;
-    userId: number;
-    masterId: number;
-    master?: Master;
-    carBrand: string;
-    carModel: string;
-    licensePlate: string;      // Регистрационный номер
-    serviceDate: string;        // Дата в формате ISO (YYYY-MM-DD)
-    serviceTime: string;        // Время (HH:MM)
-    services: ServiceWithPrice[];
-    totalPrice: number;
-    status: OrderStatus;
-    masterComment?: string;     // Комментарий мастера
-    createdAt: string;
+    orderId: number;
+    brandName: string;
+    modelName: string;
+    stateNumber: string;
+    visitDate: string;
+    visitTime: string;
+    price: number;
+    orderStatus: string;
+}
+
+export interface PageOrders {
+    orders: Order[];
+    pageNumber: number;
+    totalPages: number;
+}
+
+export interface OrderUserAndMasterDetails {
+    services: string[];
+}
+
+export interface OrderDetails {
+    services: string[];
+    userName: string;
+    userPhoneNumber: string;
+    masterName: string;
+    masterPhoneNumber: string;
 }
 
 // Фильтры для заказов

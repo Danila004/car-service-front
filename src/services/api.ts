@@ -1,6 +1,6 @@
 import type {
     Brand,
-    CarDetails, Model, PageUsers, Price,
+    CarDetails, Model, Order, PageUsers, Price,
     Service, ServiceWithPrice, User, UserStatistics
 } from '../types';
 
@@ -40,12 +40,6 @@ export const api = {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(brand)});
-    },
-
-    // Получить конкретную марку по ID
-    getBrandById: async (id: number): Promise<Brand> => {
-        const response = await fetch(`${API_BASE_URL}/brands/${id}`);
-        return handleResponse<Brand>(response);
     },
 
     // Получить модели марки
@@ -108,31 +102,6 @@ export const api = {
             body: JSON.stringify(price)});
     },
 
-    // Получить конкретную услугу по ID
-    getServiceById: async (id: number): Promise<Service> => {
-        const response = await fetch(`${API_BASE_URL}/services/${id}`);
-        return handleResponse<Service>(response);
-    },
-
-    // Получить детальную информацию об автомобиле по brandId и modelId
-    getCarDetails: async (brandId: number, modelId: number): Promise<CarDetails> => {
-        const brand = await api.getBrandById(brandId);
-        const model = brand.models.find(m => m.id === modelId);
-
-        if (!model) {
-            throw new Error(`Model with id ${modelId} not found in brand ${brandId}`);
-        }
-
-        return {
-            brand: brand.name,
-            brandId: brand.id,
-            model: model.name,
-            modelId: model.id,
-            year: model.year,
-            basePrice: model.price
-        };
-    },
-
     // Получить услуги для конкретной модели
     getServicesForModel: async (modelId: number, params: string): Promise<Response> => {
         return await fetch(`${API_BASE_URL}/services/${modelId}${params}`);
@@ -180,5 +149,23 @@ export const api = {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(newWorkStatus)});
+    },
+
+    getOrders: async (params: string): Promise<Order[]> => {
+        const response = await fetch(`${API_BASE_URL}/orders${params}`);
+        return handleResponse<Order[]>(response);
+    },
+
+    getOrdersForUser: async (userId: number, params: string): Promise<Order[]> => {
+        const response = await fetch(`${API_BASE_URL}/users/${userId}/orders${params}`);
+        return handleResponse<Order[]>(response);
+    },
+
+    getSimpleOrders: async (params: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/orders${params}`);
+    },
+
+    getSimpleOrdersForUser: async (userId: number, params: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/users/${userId}/orders${params}`);
     },
 };

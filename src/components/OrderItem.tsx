@@ -1,58 +1,80 @@
 import { useState } from 'react';
-import { Order } from '../types';
+import {Order, OrderUserAndMasterDetails} from '../types';
+import {api} from "../services/api.ts";
 
 interface OrderItemProps {
     order: Order;
-    userRole: 'client' | 'master' | 'admin';
-    onCancelOrder?: (orderId: number) => void;
+    onDeleteOrder: (orderId: number) => void;
 }
 
-function OrderItem({ order, userRole, onCancelOrder }: OrderItemProps) {
+function OrderItem({ order, onDeleteOrder }: OrderItemProps) {
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
-    const [isCancelling, setIsCancelling] = useState<boolean>(false);
-
-    const formatDate = (dateString: string) => {
-        const [year, month, day] = dateString.split('-');
-        return `${day}.${month}.${year}`;
-    };
+    const [orderUserDetails, setOrderUserDetails] = useState<OrderUserAndMasterDetails | null>(null)
+    const [error, setError] = useState<string>("");
 
     const getStatusText = (status: string) => {
         const statusMap = {
-            pending: '⏳ Ожидает',
-            in_progress: '🔧 В работе',
-            completed: '✅ Выполнен',
-            cancelled: '❌ Отменён'
+            REGISTRED: '⏳ Ожидает',
+            WORK: '🔧 В работе',
+            READY: '✅ Выполнен'
         };
-        return statusMap[status as keyof typeof statusMap] || status;
+        return statusMap[status as keyof typeof statusMap];
+    };
+
+    const getStatusClass = (status: string) => {
+        const classMap = {
+            REGISTRED: 'pending',
+            WORK: 'in_progress',
+            READY: 'completed'
+        }
+        return classMap[status as keyof typeof classMap];
     };
 
     const handleCancel = () => {
-        setIsCancelling(true);
-        if (onCancelOrder) {
-            onCancelOrder(order.id);
-        }
+        onDeleteOrder(order.orderId);
     };
 
-    const currentStatus = isCancelling ? 'cancelled' : order.status;
-    const showCancelButton = currentStatus === 'pending';
+    const handleOrderClick = async () => {
+        if(!isExpanded) {
+            const response = await api.getUserStatistics(order.orderId);
+            if(!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                setError(error);
+                return;
+            }
+            const details : OrderUserAndMasterDetails = await response.json();
+            setOrderUserDetails(details);
+        }
+        setIsExpanded(!isExpanded);
+    };
+
+    if (error) {
+        return (
+            <div className="brand-panel error-panel">
+                <div className="panel-header">
+                    <span>⚠️ Ошибка загрузки данных: {error}</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={`order-item ${isExpanded ? 'expanded' : ''}`}>
-            <div className="order-item-header" onClick={() => setIsExpanded(!isExpanded)}>
+            <div className="order-item-header" onClick={() => handleOrderClick()}>
                 <div className="order-main-info">
                     <div className="order-car">
-                        <span className="car-brand">{order.carBrand}</span>
-                        <span className="car-model">{order.carModel}</span>
+                        <span className="car-brand">{order.brandName}</span>
+                        <span className="car-model">{order.modelName}</span>
                     </div>
-                    <div className="order-license">{order.licensePlate}</div>
+                    <div className="order-license">{order.stateNumber}</div>
                 </div>
                 <div className="order-details">
                     <div className="order-date">
-                        {formatDate(order.serviceDate)} {order.serviceTime}
+                        {order.visitDate} {order.visitTime}
                     </div>
-                    <div className="order-price">{order.totalPrice.toLocaleString()} ₽</div>
-                    <div className={`order-status status-${currentStatus}`}>
-                        {getStatusText(currentStatus)}
+                    <div className="order-price">{order.price} ₽</div>
+                    <div className={`order-status status-${getStatusClass(order.orderStatus)}`}>
+                        {getStatusText(order.orderStatus)}
                     </div>
                     <div className="expand-icon">{isExpanded ? '▲' : '▼'}</div>
                 </div>
@@ -63,46 +85,29 @@ function OrderItem({ order, userRole, onCancelOrder }: OrderItemProps) {
                     <div className="expanded-section">
                         <div className="section-title">📝 Услуги:</div>
                         <div className="services-list-expanded">
-                            {order.services.map((service, idx) => (
-                                <div key={idx} className="expanded-service-item">
-                                    <span className="service-icon">{service.icon}</span>
-                                    <span className="service-name">{service.name}</span>
-                                    <span className="service-price">{service.price.toLocaleString()} ₽</span>
+                            {orderUserDetails.services.map(serviceName => (
+                                <div className="expanded-service-item">
+                                    <span className="service-icon">🔧</span>
+                                    <span className="service-name">{serviceName}</span>
                                 </div>
                             ))}
                         </div>
-                        <div className="total-price-expanded">
-                            Итого: <strong>{order.totalPrice.toLocaleString()} ₽</strong>
-                        </div>
                     </div>
 
-                    {order.master && (
-                        <div className="expanded-section">
-                            <div className="section-title">👨‍🔧 Мастер:</div>
-                            <div className="master-info">
-                                <div className="master-name">{order.master.name}</div>
-                                <div className="master-specialty">{order.master.specialty}</div>
-                                {order.masterComment && (
-                                    <div className="master-comment">
-                                        <span className="comment-label">Комментарий:</span>
-                                        <span className="comment-text">{order.masterComment}</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
 
-                    {userRole !== 'client' && (
-                        <div className="expanded-section">
-                            <div className="section-title">👤 Клиент:</div>
-                            <div className="client-info-placeholder">
-                                Информация о клиенте будет доступна позже
+                    {/*<div className="expanded-section">
+                        <div className="section-title">👨‍🔧 Мастер:</div>
+                        <div className="master-info">
+                            <div className="master-name">{orderUserDatails.name}</div>
+                            <div className="master-comment">
+                                <span className="comment-label">Телефон:</span>
+                                <span className="comment-text">{orderUserDatails.phoneNumber}</span>
                             </div>
                         </div>
-                    )}
+                    </div>*/}
 
                     {/* Кнопка отмены записи */}
-                    {showCancelButton && (
+                    {order.orderStatus === 'REGISTRED' && (
                         <div className="cancel-button-container">
                             <button
                                 className="cancel-order-btn"

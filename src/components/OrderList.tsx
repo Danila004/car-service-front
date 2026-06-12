@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Order, OrderFilters } from '../types';
+import {Order, OrderFilters, PageUsers, User} from '../types';
 import OrderItem from './OrderItem';
 import OrderFiltersComponent from './OrderFilters';
+import {useApi} from "../hooks/useApi.ts";
+import {api} from "../services/api.ts";
 
 interface OrderListProps {
     orders: Order[];
@@ -12,88 +14,18 @@ interface OrderListProps {
 const ITEMS_PER_PAGE = 10;
 
 function OrderList({ orders, userRole, onFilterChange }: OrderListProps) {
-    const [displayedOrders, setDisplayedOrders] = useState<Order[]>([]);
-    const [page, setPage] = useState<number>(1);
-    const [hasMore, setHasMore] = useState<boolean>(true);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [filters, setFilters] = useState<OrderFilters>({});
-    const loaderRef = useRef<HTMLDivElement>(null);
-
-    // Применение фильтров
-    const filteredOrders = orders.filter(order => {
-        if (filters.licensePlate && !order.licensePlate.toLowerCase().includes(filters.licensePlate.toLowerCase())) {
-            return false;
-        }
-        if (filters.dateFrom && order.serviceDate < filters.dateFrom) {
-            return false;
-        }
-        if (filters.dateTo && order.serviceDate > filters.dateTo) {
-            return false;
-        }
-        return true;
-    });
+    const { data: apiOrders, error: apiError } = useApi<PageUsers>(api.getOrders, "?userId=" + user.authUserId +
+        "&page=0");
+    const [orders, setOrders] = useState<Order[] | null>([]);
+    const [error, setError] = useState<string>("");
+    const [inputPhone, setInputPhone] = useState<string>("");
+    const [moreButton, setMoreButton] = useState<boolean>(false);
+    const [currentPage, setCurrentPage] = useState<number>(0);
 
     // Сброс страницы при изменении фильтров
     useEffect(() => {
-        setPage(1);
-        setDisplayedOrders([]);
-        setHasMore(true);
-    }, [filters]);
 
-    // Загрузка следующей порции
-    const loadMore = useCallback(() => {
-        if (loading || !hasMore) return;
-
-        setLoading(true);
-
-        setTimeout(() => {
-            const start = (page - 1) * ITEMS_PER_PAGE;
-            const end = start + ITEMS_PER_PAGE;
-            const newOrders = filteredOrders.slice(start, end);
-
-            setDisplayedOrders(prev => [...prev, ...newOrders]);
-            setHasMore(end < filteredOrders.length);
-            setLoading(false);
-        }, 500); // Имитация задержки сети
-    }, [page, filteredOrders, loading, hasMore]);
-
-    // Отслеживание прокрутки
-    useEffect(() => {
-        if (!loaderRef.current) return;
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting && hasMore && !loading) {
-                    setPage(prev => prev + 1);
-                }
-            },
-            { threshold: 0.1 }
-        );
-
-        observer.observe(loaderRef.current);
-
-        return () => observer.disconnect();
-    }, [hasMore, loading]);
-
-    // Загрузка при изменении страницы
-    useEffect(() => {
-        if (page > 1) {
-            loadMore();
-        }
-    }, [page, loadMore]);
-
-    // Начальная загрузка
-    useEffect(() => {
-        if (page === 1) {
-            setLoading(true);
-            setTimeout(() => {
-                const initialOrders = filteredOrders.slice(0, ITEMS_PER_PAGE);
-                setDisplayedOrders(initialOrders);
-                setHasMore(ITEMS_PER_PAGE < filteredOrders.length);
-                setLoading(false);
-            }, 500);
-        }
-    }, [filteredOrders]);
+    }, [apiOrders]);
 
     const handleFilterChange = (newFilters: OrderFilters) => {
         setFilters(newFilters);
