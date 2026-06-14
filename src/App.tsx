@@ -11,10 +11,10 @@ import { carsData } from './data/carsData';
 import './App.css';
 
 const mockExistingUsers: User[] = [
-    { id: 1, name: 'Алексей Иванов', email: 'alexey@example.com', phone: '+79991234567', role: 'client' },
-    { id: 2, name: 'Елена Смирнова', email: 'elena@example.com', phone: '+79992345678', role: 'client' },
-    { id: 3, name: 'Иван Соколов', email: 'ivan.s@example.com', phone: '+79995678901', role: 'master' },
-    { id: 4, name: 'Мария Волкова', email: 'maria@example.com', phone: '+79996789012', role: 'admin' },
+    { authUserId: 1, userName: 'Алексей Иванов', workStatus: 'WORK', phoneNumber: '+79991234567', userType: 'CLIENT' },
+    { authUserId: 2, userName: 'Елена Смирнова', workStatus: 'WORK', phoneNumber: '+79992345678', userType: 'CLIENT' },
+    { authUserId: 3, userName: 'Иван Соколов', workStatus: 'WORK', phoneNumber: '+79995678901', userType: 'MASTER' },
+    { authUserId: 4, userName: 'Мария Волкова', workStatus: 'WORK', phoneNumber: '+79996789012', userType: 'ADMIN' }
 ];
 
 function App() {

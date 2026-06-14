@@ -14,7 +14,6 @@ function BrandModelPanel({ onModelSelect, selectedBrand, setSelectedBrand, setSe
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [models, setModels] = useState<Model[]>([]);
     const [error, setError] = useState<string>("");
-
     const { data: brands, error: apiError } = useApi<Brand[]>(api.getBrands, "?status=ACTIVE");
 
     const handleBrandClick = (brand: Brand) => {

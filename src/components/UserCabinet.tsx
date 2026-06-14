@@ -9,6 +9,7 @@ import ServicesList from "./ServicesList.tsx";
 import OrderItem from "./OrderItem.tsx";
 import {useApi} from "../hooks/useApi.ts";
 import {api} from "../services/api.ts";
+import OrdersPage from "./OrdersPage.tsx";
 
 interface UserCabinetProps {
     onBackToHome: () => void;
@@ -17,8 +18,8 @@ interface UserCabinetProps {
 }
 
 function UserCabinet({ user, onLogout }: UserCabinetProps) {
-    const { data: apiOrders, error: apiError } = useApi<PageOrders>(api.getOrdersForUser, "?userId=" + user.authUserId +
-        "&stateNumber=&start=&end=&page=0");
+    const { data: apiOrders, error: apiError } = useApi<PageOrders>(api.getOrdersForUser, "/" + user.authUserId +
+        "/orders?page=0");
     const [orders, setOrders] = useState<Order[] | null>([]);
     const [error, setError] = useState<string>("");
     const [moreButton, setMoreButton] = useState<boolean>(false);
@@ -28,6 +29,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
     const [inputStateNumber, setInputStateNumber] = useState<string>("");
     const [showMasterOrders, setShowMasterOrders] = useState<boolean>(false);
     const [showUsersPage, setShowUsersPage] = useState<boolean>(false);
+    const [showOrdersPage, setShowOrdersPage] = useState<boolean>(false);
     const [showCarsPage, setShowCarsPage] = useState<boolean>(false);
     const [showServicesPage, setShowServicesPage] = useState<boolean>(false);
     const [showCreateOrderModal, setShowCreateOrderModal] = useState<boolean>(false);
@@ -39,10 +41,10 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
     }, [apiOrders]);
 
     const handleFilterClick = async () => {
-        const response = await api.getSimpleOrders("?userId=" + user.authUserId +
-            "&stateNumber=" + inputStateNumber +
-            "&start=" + inputDateFrom +
-            "&end=" + inputDateTo +
+        const response = await api.getSimpleOrdersForUser(user.authUserId,
+            (inputStateNumber === "" ? "?" : "?stateNumber=" + inputStateNumber) +
+            (inputDateFrom === "" ? "" : "&start=" + inputDateFrom) +
+            (inputDateTo === "" ? "" : "&end=" + inputDateTo) +
             "&page=0");
         if(!response.ok) {
             const error = await response.json().catch(() => ({}));
@@ -57,8 +59,8 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
     };
 
     const handleFilterReset = async () => {
-        const response = await api.getSimpleOrders("?userId=" + user.authUserId +
-            "&stateNumber=&start=&end=&page=0");
+        const response = await api.getSimpleOrdersForUser(user.authUserId,
+            "?page=0");
         if(!response.ok) {
             const error = await response.json().catch(() => ({}));
             setError(error);
@@ -69,14 +71,16 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
         if(orderPage.pageNumber + 1 === orderPage.totalPages)
             setMoreButton(false);
         setInputStateNumber("");
+        setInputDateTo("");
+        setInputDateFrom("");
         setCurrentPage(0);
     };
 
     const handleMoreButtonClick = async () => {
-        const response = await api.getSimpleOrders("?userId=" + user.authUserId +
-            "&stateNumber=" + inputStateNumber +
-            "&start=" + inputDateFrom +
-            "&end=" + inputDateTo +
+        const response = await api.getSimpleOrdersForUser(user.authUserId,
+            (inputStateNumber === "" ? "?" : "?stateNumber=" + inputStateNumber) +
+            (inputDateFrom === "" ? "" : "&start=" + inputDateFrom) +
+            (inputDateTo === "" ? "" : "&end=" + inputDateTo) +
             "&page=" + (currentPage + 1));
         if(!response.ok) {
             const error = await response.json().catch(() => ({}));
@@ -109,8 +113,8 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
         setShowUsersPage(true);
     };
 
-    const handleGeneralOrders = () => {
-        alert('Общие заказы автосервиса будут доступны в следующей версии');
+    const handleOrdersPage = () => {
+        setShowOrdersPage(true);
     };
 
     const handleBackFromMasterOrders = () => {
@@ -129,6 +133,10 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
         setShowCarsPage(false);
     };
 
+    const handleBackFromOrdersPage = () => {
+        setShowOrdersPage(false);
+    };
+
     const handleBookingClick = () => {
         setShowCreateOrderModal(true);
     };
@@ -139,6 +147,10 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
 
     if (showCarsPage) {
         return <CarsList onBack={handleBackFromCarsPage} />;
+    }
+
+    if (showOrdersPage) {
+        return <OrdersPage onBack={handleBackFromOrdersPage} user={user} />;
     }
 
     if (showUsersPage) {
@@ -203,7 +215,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
                     </div>
 
                     {user.userType === 'ADMIN' && (
-                        <div className="cabinet-square-panel" onClick={handleGeneralOrders}>
+                        <div className="cabinet-square-panel" onClick={handleOrdersPage}>
                             <div className="square-content">
                                 <span className="square-icon">📊</span>
                                 <span className="square-text">Все заказы</span>
@@ -277,12 +289,17 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
                     </div>
 
                     <div className="order-list">
-                        {orders?.length ? (
+                        {orders?.length === 0 ? (
                             <div className="empty-orders">Нет записей</div>
                         ) : (
                             <>
                                 {orders?.map((order) => (
-                                    <OrderItem key={order.orderId} order={order} onDeleteOrder={handleDeleteOrder}/>
+                                    <OrderItem
+                                        key={order.orderId}
+                                        order={order}
+                                        onDeleteOrder={handleDeleteOrder}
+                                        userRole={user.userType}
+                                    />
                                 ))}
                             </>
                         )}

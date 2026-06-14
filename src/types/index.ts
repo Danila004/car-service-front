@@ -107,14 +107,14 @@ export type OrderStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
 
 // Заказ
 export interface Order {
-    orderId: number;
     brandName: string;
     modelName: string;
+    orderId: number;
+    orderStatus: string;
+    price: number;
     stateNumber: string;
     visitDate: string;
     visitTime: string;
-    price: number;
-    orderStatus: string;
 }
 
 export interface PageOrders {
@@ -123,11 +123,11 @@ export interface PageOrders {
     totalPages: number;
 }
 
-export interface OrderUserAndMasterDetails {
+export interface OrderDetailsForUserOrMaster {
     services: string[];
 }
 
-export interface OrderDetails {
+export interface OrderDetailsForAdmin {
     services: string[];
     userName: string;
     userPhoneNumber: string;

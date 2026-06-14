@@ -500,11 +500,28 @@ body {
     background: #e9ecef;
 }
 
+.orders-page {
+    min-height: 100vh;
+    background: #f5f7fa;
+    padding: 40px 20px;
+}
+
+.orders-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.order-list-container {
+    width: 100%;
+}
+
 /* Список заказов */
 .order-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    margin-bottom: 40px;
 }
 
 .order-item {
@@ -691,35 +708,41 @@ body {
     margin-bottom: 4px;
 }
 
-.master-specialty {
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 8px;
-}
-
-.master-comment {
+.master-number {
     margin-top: 8px;
     padding-top: 8px;
     border-top: 1px solid #eee;
 }
 
-.comment-label {
+.number-label {
     font-weight: 600;
     font-size: 12px;
     color: #666;
     margin-right: 8px;
 }
 
-.comment-text {
+.number-text {
     font-size: 14px;
     color: #333;
     font-style: italic;
 }
 
-.client-info-placeholder {
-    color: #999;
-    font-style: italic;
-    padding: 8px 0;
+.client-info {
+    background: white;
+    padding: 12px 16px;
+    border-radius: 12px;
+}
+
+.client-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.client-number {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #eee;
 }
 
 .empty-orders {

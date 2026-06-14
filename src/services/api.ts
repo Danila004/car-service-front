@@ -1,6 +1,6 @@
 import type {
     Brand,
-    CarDetails, Model, Order, PageUsers, Price,
+    CarDetails, Model, Order, PageOrders, PageUsers, Price,
     Service, ServiceWithPrice, User, UserStatistics
 } from '../types';
 
@@ -14,7 +14,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
         throw new Error(error.message || `HTTP error! status: ${response.status}`);
     }
     console.log(response);
-    return response.json().then(data => data.content ?? data);
+    return response.json().then(data => {console.log(data); return data.content ?? data});
 };
 
 // API объект с методами
@@ -151,14 +151,14 @@ export const api = {
             body: JSON.stringify(newWorkStatus)});
     },
 
-    getOrders: async (params: string): Promise<Order[]> => {
+    getOrders: async (params: string): Promise<PageOrders> => {
         const response = await fetch(`${API_BASE_URL}/orders${params}`);
-        return handleResponse<Order[]>(response);
+        return handleResponse<PageOrders>(response);
     },
 
-    getOrdersForUser: async (userId: number, params: string): Promise<Order[]> => {
-        const response = await fetch(`${API_BASE_URL}/users/${userId}/orders${params}`);
-        return handleResponse<Order[]>(response);
+    getOrdersForUser: async (params: string): Promise<PageOrders> => {
+        const response = await fetch(`${API_BASE_URL}/users${params}`);
+        return handleResponse<PageOrders>(response);
     },
 
     getSimpleOrders: async (params: string): Promise<Response> => {
@@ -168,4 +168,19 @@ export const api = {
     getSimpleOrdersForUser: async (userId: number, params: string): Promise<Response> => {
         return await fetch(`${API_BASE_URL}/users/${userId}/orders${params}`);
     },
+
+    deleteOrder: async (orderId: number): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/orders/${orderId}`,
+            {
+                method: 'DELETE',
+            });
+    },
+
+    getOrderDetailsForUserOrMaster: async (orderId: number): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/orders/${orderId}/simpleDetails`);
+    },
+
+    getOrderDetailsForAdmin: async (orderId: number): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/orders/${orderId}/fullDetails`);
+    }
 };

@@ -1,15 +1,17 @@
 import { useState } from 'react';
-import {Order, OrderUserAndMasterDetails} from '../types';
+import {Order, OrderDetailsForAdmin, OrderDetailsForUserOrMaster, OrderUserAndMasterDetails} from '../types';
 import {api} from "../services/api.ts";
 
 interface OrderItemProps {
     order: Order;
     onDeleteOrder: (orderId: number) => void;
+    userRole: string;
 }
 
-function OrderItem({ order, onDeleteOrder }: OrderItemProps) {
+function OrderItem({ order, onDeleteOrder, userRole }: OrderItemProps) {
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
-    const [orderUserDetails, setOrderUserDetails] = useState<OrderUserAndMasterDetails | null>(null)
+    const [orderUserOrMasterDetails, setOrderUserOrMasterDetails] = useState<OrderUserAndMasterDetails | null>(null)
+    const [orderAdminDetails, setOrderAdminDetails] = useState<OrderDetailsForAdmin | null>(null)
     const [error, setError] = useState<string>("");
 
     const getStatusText = (status: string) => {
@@ -36,14 +38,18 @@ function OrderItem({ order, onDeleteOrder }: OrderItemProps) {
 
     const handleOrderClick = async () => {
         if(!isExpanded) {
-            const response = await api.getUserStatistics(order.orderId);
+            const response = await (userRole === 'ADMIN' ? api.getOrderDetailsForAdmin(order.orderId) :
+                api.getOrderDetailsForUserOrMaster(order.orderId));
             if(!response.ok) {
                 const error = await response.json().catch(() => ({}));
                 setError(error);
                 return;
             }
-            const details : OrderUserAndMasterDetails = await response.json();
-            setOrderUserDetails(details);
+            const details = await response.json();
+            if(userRole === 'ADMIN')
+                setOrderAdminDetails(details)
+            else
+                setOrderUserOrMasterDetails(details);
         }
         setIsExpanded(!isExpanded);
     };
@@ -70,7 +76,7 @@ function OrderItem({ order, onDeleteOrder }: OrderItemProps) {
                 </div>
                 <div className="order-details">
                     <div className="order-date">
-                        {order.visitDate} {order.visitTime}
+                        {order.visitDate} {order.visitTime.slice(0, 5)}
                     </div>
                     <div className="order-price">{order.price} ₽</div>
                     <div className={`order-status status-${getStatusClass(order.orderStatus)}`}>
@@ -85,7 +91,8 @@ function OrderItem({ order, onDeleteOrder }: OrderItemProps) {
                     <div className="expanded-section">
                         <div className="section-title">📝 Услуги:</div>
                         <div className="services-list-expanded">
-                            {orderUserDetails.services.map(serviceName => (
+                            {(userRole === 'ADMIN' ? orderAdminDetails : orderUserOrMasterDetails)
+                                .services.map(serviceName => (
                                 <div className="expanded-service-item">
                                     <span className="service-icon">🔧</span>
                                     <span className="service-name">{serviceName}</span>
@@ -95,16 +102,32 @@ function OrderItem({ order, onDeleteOrder }: OrderItemProps) {
                     </div>
 
 
-                    {/*<div className="expanded-section">
-                        <div className="section-title">👨‍🔧 Мастер:</div>
-                        <div className="master-info">
-                            <div className="master-name">{orderUserDatails.name}</div>
-                            <div className="master-comment">
-                                <span className="comment-label">Телефон:</span>
-                                <span className="comment-text">{orderUserDatails.phoneNumber}</span>
+                    {userRole === 'ADMIN' && (
+                        <>
+                            <div className="expanded-section">
+                                <div className="section-title">👨‍🔧 Мастер:</div>
+                                <div className="master-info">
+                                    <div className="master-name">{orderAdminDetails?.masterName}</div>
+                                    <div className="master-number">
+                                        <span className="number-label">Телефон:</span>
+                                        <span className="number-text">{orderAdminDetails?.masterPhoneNumber}</span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>*/}
+
+                            <div className="expanded-section">
+                                <div className="section-title">👤 Клиент:</div>
+                                <div className="client-info">
+                                    <div className="client-name">{orderAdminDetails?.userName}</div>
+                                    <div className="client-number">
+                                        <span className="number-label">Телефон:</span>
+                                        <span className="number-text">{orderAdminDetails?.userPhoneNumber}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    )}
+
 
                     {/* Кнопка отмены записи */}
                     {order.orderStatus === 'REGISTRED' && (
