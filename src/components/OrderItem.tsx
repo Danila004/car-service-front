@@ -103,12 +103,20 @@ function OrderItem({ order, userRole, onCancelOrder }: OrderItemProps) {
 
                     {/* Кнопка отмены записи */}
                     {showCancelButton && (
-                        <div className="cancel-button-container">
+                        <div className="buttons-container">
+                            {userRole === 'admin' && (
+                                <button
+                                    className="work-order-btn"
+                                    onClick={handleCancel}
+                                >
+                                    Принять
+                                </button>)}
+
                             <button
                                 className="cancel-order-btn"
                                 onClick={handleCancel}
                             >
-                                ❌ Отменить
+                                Отменить
                             </button>
                         </div>
                     )}
