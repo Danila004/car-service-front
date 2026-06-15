@@ -1,7 +1,7 @@
 import type {
     Brand,
-    CarDetails, Model, Order, PageOrders, PageUsers, Price,
-    Service, ServiceWithPrice, User, UserStatistics
+    Model, Order, PageOrders, PageUsers, Price,
+    Service, ServiceWithPrice
 } from '../types';
 
 // Базовый URL API
@@ -13,8 +13,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
         const error = await response.json().catch(() => ({}));
         throw new Error(error.message || `HTTP error! status: ${response.status}`);
     }
-    console.log(response);
-    return response.json().then(data => {console.log(data); return data.content ?? data});
+    return response.json().then(data => data.content ?? data);
 };
 
 // API объект с методами
@@ -22,6 +21,10 @@ export const api = {
     getBrands: async (params: string): Promise<Brand[]> => {
         const response = await fetch(`${API_BASE_URL}/brands${params}`);
         return handleResponse<Brand[]>(response);
+    },
+
+    getSimpleBrands: async (params: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/brands${params}`);
     },
 
     addBrand: async (brand: Brand): Promise<Response> => {
@@ -161,6 +164,15 @@ export const api = {
         return handleResponse<PageOrders>(response);
     },
 
+    getOrdersForMaster: async (params: string): Promise<Order[]> => {
+        const response = await fetch(`${API_BASE_URL}/users${params}`);
+        return handleResponse<Order[]>(response);
+    },
+
+    getSimpleOrdersForMaster: async (masterId: number, params: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/users/${masterId}/ordersToWork${params}`);
+    },
+
     getSimpleOrders: async (params: string): Promise<Response> => {
         return await fetch(`${API_BASE_URL}/orders${params}`);
     },
@@ -182,5 +194,14 @@ export const api = {
 
     getOrderDetailsForAdmin: async (orderId: number): Promise<Response> => {
         return await fetch(`${API_BASE_URL}/orders/${orderId}/fullDetails`);
+    },
+
+    setOrderStatus: async (orderId: number, newOrderStatus: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/orders/${orderId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newOrderStatus)});
     }
 };

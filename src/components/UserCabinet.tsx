@@ -95,13 +95,12 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
     };
 
     const handleDeleteOrder = async (orderId: number) => {
-        const response = await api.deleteOrder(orderId);
-        if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            setError(error);
-            return;
-        }
         setOrders(prev => (prev ?? []).filter(order => order.orderId !== orderId))
+    };
+
+    const handleChangeStatusToWork = async (orderId: number) => {
+        setOrders(prev => (prev ?? []).map(order =>
+            order.orderId === orderId ? {...order, orderStatus: 'WORK'} : order));
     };
 
     // Временные заглушки для кнопок (позже реализуем)
@@ -150,7 +149,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
     }
 
     if (showOrdersPage) {
-        return <OrdersPage onBack={handleBackFromOrdersPage} user={user} />;
+        return <OrdersPage onBack={handleBackFromOrdersPage} user={user} onDeleteOrder={handleDeleteOrder} />;
     }
 
     if (showUsersPage) {
@@ -158,7 +157,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
     }
 
     if (showMasterOrders) {
-        return <MasterOrdersPage onBack={handleBackFromMasterOrders} />;
+        return <MasterOrdersPage onBack={handleBackFromMasterOrders} user={user} />;
     }
 
     if (showServicesPage) {
@@ -299,6 +298,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
                                         order={order}
                                         onDeleteOrder={handleDeleteOrder}
                                         userRole={user.userType}
+                                        onChangeStatusToWork={handleChangeStatusToWork}
                                     />
                                 ))}
                             </>

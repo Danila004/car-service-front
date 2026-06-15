@@ -79,13 +79,12 @@ function OrdersPage({ user, onBack }: OrdersPageProps) {
     };
 
     const handleDeleteOrder = async (orderId: number) => {
-        const response = await api.deleteOrder(orderId);
-        if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            setError(error);
-            return;
-        }
         setOrders(prev => (prev ?? []).filter(order => order.orderId !== orderId))
+    };
+
+    const handleChangeStatusToWork = async (orderId: number) => {
+        setOrders(prev => (prev ?? []).map(order =>
+            order.orderId === orderId ? {...order, orderStatus: 'WORK'} : order));
     };
 
     if (apiError) {
@@ -155,6 +154,7 @@ function OrdersPage({ user, onBack }: OrdersPageProps) {
                                         order={order}
                                         onDeleteOrder={handleDeleteOrder}
                                         userRole={user.userType}
+                                        onChangeStatusToWork={handleChangeStatusToWork}
                                     />
                                 ))}
                             </>

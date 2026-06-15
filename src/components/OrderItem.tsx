@@ -1,16 +1,18 @@
 import { useState } from 'react';
-import {Order, OrderDetailsForAdmin, OrderDetailsForUserOrMaster, OrderUserAndMasterDetails} from '../types';
+import {Order, OrderDetailsForAdmin, OrderDetailsForUserOrMaster} from '../types';
 import {api} from "../services/api.ts";
 
 interface OrderItemProps {
     order: Order;
-    onDeleteOrder: (orderId: number) => void;
-    userRole: string;
+    onDeleteOrder?: (orderId: number) => void;
+    onComplete?: (orderId: number) => void;
+    onChangeStatusToWork?: (orderId: number) => void;
+    userRole?: string;
 }
 
-function OrderItem({ order, onDeleteOrder, userRole }: OrderItemProps) {
+function OrderItem({ order, onDeleteOrder, userRole, onComplete, onChangeStatusToWork }: OrderItemProps) {
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
-    const [orderUserOrMasterDetails, setOrderUserOrMasterDetails] = useState<OrderUserAndMasterDetails | null>(null)
+    const [orderUserOrMasterDetails, setOrderUserOrMasterDetails] = useState<OrderDetailsForUserOrMaster | null>(null)
     const [orderAdminDetails, setOrderAdminDetails] = useState<OrderDetailsForAdmin | null>(null)
     const [error, setError] = useState<string>("");
 
@@ -32,8 +34,14 @@ function OrderItem({ order, onDeleteOrder, userRole }: OrderItemProps) {
         return classMap[status as keyof typeof classMap];
     };
 
-    const handleCancel = () => {
-        onDeleteOrder(order.orderId);
+    const handleCancel = async () => {
+        const response = await api.deleteOrder(order.orderId);
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        onDeleteOrder?.(order.orderId);
     };
 
     const handleOrderClick = async () => {
@@ -52,6 +60,20 @@ function OrderItem({ order, onDeleteOrder, userRole }: OrderItemProps) {
                 setOrderUserOrMasterDetails(details);
         }
         setIsExpanded(!isExpanded);
+    };
+
+    const handleChangeStatus = async (newOrderStatus: string) => {
+        const response = await api.setOrderStatus(order.orderId, newOrderStatus);
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        setIsExpanded(false);
+        if(newOrderStatus === 'WORK')
+            onChangeStatusToWork?.(order.orderId);
+        else
+            onComplete?.(order.orderId);
     };
 
     if (error) {
@@ -78,10 +100,27 @@ function OrderItem({ order, onDeleteOrder, userRole }: OrderItemProps) {
                     <div className="order-date">
                         {order.visitDate} {order.visitTime.slice(0, 5)}
                     </div>
-                    <div className="order-price">{order.price} ₽</div>
-                    <div className={`order-status status-${getStatusClass(order.orderStatus)}`}>
-                        {getStatusText(order.orderStatus)}
-                    </div>
+
+                    {userRole !== 'MASTER' ? (
+                        <>
+                            <div className="order-price">{order.price} ₽</div>
+                            <div className={`order-status status-${getStatusClass(order.orderStatus)}`}>
+                                {getStatusText(order.orderStatus)}
+                            </div>
+                        </>
+                    ) : (
+                        <button
+                            className={`complete-btn ${order.orderStatus === 'READY' ? 'completed' : ''}`}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleChangeStatus('READY');
+                            }}
+                            disabled={order.orderStatus === 'READY'}
+                        >
+                            {order.orderStatus === 'READY' ? '✓ Выполнен' : '○ Отметить выполненным'}
+                        </button>
+                    )}
+
                     <div className="expand-icon">{isExpanded ? '▲' : '▼'}</div>
                 </div>
             </div>
@@ -92,7 +131,7 @@ function OrderItem({ order, onDeleteOrder, userRole }: OrderItemProps) {
                         <div className="section-title">📝 Услуги:</div>
                         <div className="services-list-expanded">
                             {(userRole === 'ADMIN' ? orderAdminDetails : orderUserOrMasterDetails)
-                                .services.map(serviceName => (
+                                ?.services.map((serviceName, id) => (
                                 <div className="expanded-service-item">
                                     <span className="service-icon">🔧</span>
                                     <span className="service-name">{serviceName}</span>
@@ -128,13 +167,24 @@ function OrderItem({ order, onDeleteOrder, userRole }: OrderItemProps) {
                         </>
                     )}
 
+                    {/* Кнопка отмены записи */}
+                    {order.orderStatus === 'REGISTRED' && userRole === 'ADMIN' && (
+                        <div className="work-button-container">
+                            <button
+                                className="work-order-btn"
+                                onClick={() => handleChangeStatus('WORK')}
+                            >
+                                ✓ Принять
+                            </button>
+                        </div>
+                    )}
 
                     {/* Кнопка отмены записи */}
                     {order.orderStatus === 'REGISTRED' && (
                         <div className="cancel-button-container">
                             <button
                                 className="cancel-order-btn"
-                                onClick={handleCancel}
+                                onClick={() => handleCancel()}
                             >
                                 ❌ Отменить
                             </button>

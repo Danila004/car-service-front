@@ -1,6 +1,5 @@
 import {useState} from 'react';
 import { api } from '../services/api';
-import { useApi } from '../hooks/useApi';
 import {Brand, Model, ServiceWithPrice} from '../types';
 
 interface BrandModelPanelProps {
@@ -13,43 +12,49 @@ interface BrandModelPanelProps {
 function BrandModelPanel({ onModelSelect, selectedBrand, setSelectedBrand, setServices }: BrandModelPanelProps) {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [models, setModels] = useState<Model[]>([]);
+    const [brands, setBrands] = useState<Brand[]>([]);
     const [error, setError] = useState<string>("");
-    const { data: brands, error: apiError } = useApi<Brand[]>(api.getBrands, "?status=ACTIVE");
 
-    const handleBrandClick = (brand: Brand) => {
+    const handlePanelClick = async () => {
+        const response = await api.getSimpleBrands( "?status=ACTIVE");
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+            return;
+        }
+        const brands : Brand[] = await response.json();
+        setBrands(brands);
+        setIsOpen(!isOpen);
+    };
+
+    const handleBrandClick = async (brand: Brand) => {
         setSelectedBrand(brand);
-        api.getModelsByBrand(brand.brandId, "?status=ACTIVE").then(async response => {
-            if(!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                setError(error);
-            }
-            else {
-                const brandModels : Model[] = await response.json();
-                setModels(Array.from(brandModels));
-            }
-        });
+        const response = await api.getModelsByBrand(brand.brandId, "?status=ACTIVE");
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+        }
+        const brandModels : Model[] = await response.json();
+        setModels(brandModels);
     };
 
     const handleModelClick = async (model: Model) => {
         if (!selectedBrand) return;
         onModelSelect(model);
-        api.getServicesForModel(model.modelId, "?status=ACTIVE").then(async response => {
-            if(!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                setError(error);
-            }
-            else {
-                const modelServices : ServiceWithPrice[] = await response.json();
-                setServices(Array.from(modelServices));
-            }
-        });
+        const response = await api.getServicesForModel(model.modelId, "?status=ACTIVE");
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+        }
+        const modelServices : ServiceWithPrice[] = await response.json();
+        setServices(modelServices);
     };
 
-    if (apiError || error) {
+    if (error) {
         return (
             <div className="brand-panel error-panel">
                 <div className="panel-header">
-                    <span>⚠️ Ошибка загрузки данных: {apiError === null ? error : apiError}</span>
+                    <span>⚠️ Ошибка загрузки данных: {error}</span>
                 </div>
             </div>
         );
@@ -57,7 +62,7 @@ function BrandModelPanel({ onModelSelect, selectedBrand, setSelectedBrand, setSe
 
     return (
         <div className="brand-panel">
-            <div className="panel-header" onClick={() => setIsOpen(!isOpen)}>
+            <div className="panel-header" onClick={() => handlePanelClick()}>
                 <div className="header-content">
                     <span className="panel-icon">🚗</span>
                     <span className="panel-title">Выбор автомобиля</span>

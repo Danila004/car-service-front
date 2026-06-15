@@ -157,7 +157,7 @@ function UsersPage({ onBack }: UsersPageProps) {
                     <div className="user-list">
                         {users?.some(user => user === null) ? ("Не найдено") : (
                             users?.map((user) => (
-                            <UserItem user={user} onUpdateUser={handleUpdateUser} />
+                            <UserItem key={user.authUserId} user={user} onUpdateUser={handleUpdateUser} />
                         )))}
 
                         {moreButton && (

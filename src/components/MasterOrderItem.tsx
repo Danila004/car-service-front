@@ -8,8 +8,6 @@ interface MasterOrderItemProps {
 
 function MasterOrderItem({ order, onComplete }: MasterOrderItemProps) {
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
-    const [isCompleted, setIsCompleted] = useState<boolean>(order.isCompleted);
-    const [comment, setComment] = useState<string>('');
 
     const formatDate = (dateString: string) => {
         const [year, month, day] = dateString.split('-');

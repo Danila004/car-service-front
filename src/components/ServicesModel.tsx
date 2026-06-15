@@ -1,10 +1,10 @@
 import React from 'react';
-import {BrandToHomepage, Model, ServiceWithPrice} from '../types';
-import './ServiceModal.css';
+import {Brand, Model, ServiceWithPrice} from '../types';
+//import './ServiceModal.css';
 
 interface ServicesModalProps {
     model: Model;
-    brand: BrandToHomepage | null;
+    brand: Brand | null;
     modelServices: ServiceWithPrice[];
     onClose: () => void;
 }
