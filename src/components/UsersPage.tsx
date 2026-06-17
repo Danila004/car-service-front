@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {PageUsers, User, UserRole, UserStatistics} from '../types';
+import React, {useState} from 'react';
+import {PageUsers, User} from '../types';
 import UserItem from "./UserItem.tsx";
 import {useApi} from "../hooks/useApi.ts";
 import {api} from "../services/api.ts";
@@ -25,7 +25,7 @@ function UsersPage({ onBack }: UsersPageProps) {
     
     const handleUpdateUser = (user: User) => {
         setUsers(prev => (prev ?? []).map(u =>
-            u.authUserId === user.authUserId
+            u.userId === user.userId
                 ? { ...u, ...user }
                 : u
         ));
@@ -157,7 +157,7 @@ function UsersPage({ onBack }: UsersPageProps) {
                     <div className="user-list">
                         {users?.some(user => user === null) ? ("Не найдено") : (
                             users?.map((user) => (
-                            <UserItem key={user.authUserId} user={user} onUpdateUser={handleUpdateUser} />
+                            <UserItem key={user.userId} user={user} onUpdateUser={handleUpdateUser} />
                         )))}
 
                         {moreButton && (

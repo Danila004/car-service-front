@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {Brand, CreateOrder, DateSlot, Model, ServiceWithPrice} from '../types';
 import { api } from '../services/api';
 import { User } from '../types';
+import {useApi} from "../hooks/useApi.ts";
 
 interface CreateOrderModalProps {
     isOpen: boolean;
@@ -44,6 +45,7 @@ function CreateOrderModal({ isOpen, onClose, currentUser }: CreateOrderModalProp
     const discountPercent = getDiscount();
     const discountAmount = totalServicesPrice * discountPercent / 100;
     const finalPrice = totalServicesPrice - discountAmount;
+
 
     // Сброс состояния при открытии
     React.useEffect(() => {
@@ -107,6 +109,13 @@ function CreateOrderModal({ isOpen, onClose, currentUser }: CreateOrderModalProp
     React.useEffect(() => {
         const loadDateSlots = async () => {
             setError('');
+            if(selectedTimeId !== 0) {
+                const response = await api.setDateSlotsStatus(selectedTimeId, 'FREE');
+                if(!response.ok) {
+                    setError("Не удалось переключить дату");
+                    return;
+                }
+            }
             const response = await api.getDateSlots("?date=" + selectedDate);
             if(!response.ok) {
                 const error = await response.json().catch(() => ({}));
@@ -115,10 +124,28 @@ function CreateOrderModal({ isOpen, onClose, currentUser }: CreateOrderModalProp
             }
             const dateSlots: DateSlot[] = await response.json();
             setDateSlots(dateSlots);
+            setSelectedTimeId(0);
         };
         if(selectedDate)
             loadDateSlots();
     }, [selectedDate]);
+
+    const handleChangeTime = async (dateSlotId: number) => {
+        setError('');
+        if(selectedTimeId !== 0) {
+            const response = await api.setDateSlotsStatus(selectedTimeId, 'FREE');
+            if(!response.ok) {
+                setError("Не удалось переключить дату");
+                return;
+            }
+        }
+        const response = await api.setDateSlotsStatus(dateSlotId, 'BOOK');
+        if(!response.ok) {
+            setError("Не удалось выбрать время");
+            return;
+        }
+        setSelectedTimeId(dateSlotId);
+    };
 
     const getMinDate = () => {
         const today = new Date();
@@ -204,11 +231,11 @@ function CreateOrderModal({ isOpen, onClose, currentUser }: CreateOrderModalProp
             price: finalPrice,
             stateNumber: licensePlate,
             visitDate: selectedDate,
-            visitTime: dateSlots.find(ds => ds.dateSlotId === selectedTimeId)?.visitTime,
-            authUserId: currentUser?.authUserId ?? null,
+            visitTime: dateSlots.find(ds => ds.slotId === selectedTimeId)?.visitTime,
+            userId: currentUser?.userId ?? null,
             userName: currentUser?.userName ?? clientName,
             userPhoneNumber: currentUser?.phoneNumber ?? clientPhone,
-            masterId: dateSlots.find(ds => ds.dateSlotId === selectedTimeId)?.masterId
+            masterId: dateSlots.find(ds => ds.slotId === selectedTimeId)?.masterId
         };
         const services = selectedServices.map(s => s.serviceId);
 
@@ -217,6 +244,7 @@ function CreateOrderModal({ isOpen, onClose, currentUser }: CreateOrderModalProp
             const error = await response.json().catch(() => ({}));
             setError(error);
         }
+        console.log(response);
         handleClose();
     };
 
@@ -343,12 +371,12 @@ function CreateOrderModal({ isOpen, onClose, currentUser }: CreateOrderModalProp
                                 <label>Время записи</label>
                                 <select
                                     value={selectedTimeId}
-                                    onChange={(e) => setSelectedTimeId(Number(e.target.value))}
+                                    onChange={(e) => handleChangeTime(Number(e.target.value))}
                                     disabled={!selectedDate}
                                 >
                                     <option value="">Выберите время</option>
                                     {dateSlots.map((time) => (
-                                        <option key={time.dateSlotId} value={time.dateSlotId}>
+                                        <option key={time.slotId} value={time.slotId}>
                                             {time.visitTime}
                                         </option>
                                     ))}
@@ -407,8 +435,14 @@ function CreateOrderModal({ isOpen, onClose, currentUser }: CreateOrderModalProp
                                 )}
                             </div>
                         )}
-
                     </div>
+
+                    <div className="modal-footer">
+                        <button type="submit" className="create-order-btn">
+                            {'Записаться'}
+                        </button>
+                    </div>
+
                 </form>
             </div>
         </div>

@@ -9,10 +9,10 @@ interface LoginModalProps {
 
 // Моковые данные пользователей для проверки
 const mockUsers: User[] = [
-    { authUserId: 1, userName: 'Алексей Иванов', workStatus: 'WORK', phoneNumber: '+79991234567', userType: 'CLIENT' },
-    { authUserId: 2, userName: 'Елена Смирнова', workStatus: 'WORK', phoneNumber: '+79992345678', userType: 'CLIENT' },
-    { authUserId: 3, userName: 'Иван Соколов', workStatus: 'WORK', phoneNumber: '+79995678901', userType: 'MASTER' },
-    { authUserId: 4, userName: 'Мария Волкова', workStatus: 'WORK', phoneNumber: '+79996789012', userType: 'ADMIN' }
+    { userId: 1, userName: 'Алексей Иванов', workStatus: 'WORK', phoneNumber: '+79991234567', userType: 'CLIENT' },
+    { userId: 2, userName: 'Елена Смирнова', workStatus: 'WORK', phoneNumber: '+79992345678', userType: 'CLIENT' },
+    { userId: 3, userName: 'Иван Соколов', workStatus: 'WORK', phoneNumber: '+79995678901', userType: 'MASTER' },
+    { userId: 4, userName: 'Мария Волкова', workStatus: 'WORK', phoneNumber: '+79996789012', userType: 'ADMIN' }
 ];
 
 // Пароль для всех пользователей (упрощённо)

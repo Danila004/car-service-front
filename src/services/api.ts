@@ -191,7 +191,7 @@ export const api = {
     },
 
     createOrder: async (newOrder: CreateOrder, services: number[]): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/orders}`, {
+        return await fetch(`${API_BASE_URL}/orders`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -201,5 +201,14 @@ export const api = {
 
     getDateSlots: async (params: string): Promise<Response> => {
         return await fetch(`${API_BASE_URL}/dateSlots${params}`)
-    }
+    },
+
+    setDateSlotsStatus: async (dateSlotId: number, newStatus: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/dateSlots/${dateSlotId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newStatus)});
+    },
 };

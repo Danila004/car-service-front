@@ -48,7 +48,7 @@ export interface ApiState<T> {
 
 // Данные пользователя
 export interface User {
-    authUserId: number;
+    userId: number;
     userName: string;
     userType: string;
     phoneNumber: string;
@@ -81,7 +81,7 @@ export interface Order {
 }
 
 export interface CreateOrder extends Order {
-    authUserId: number | null;
+    userId: number | null;
     userName: string;
     userPhoneNumber: string;
     masterId: number;
@@ -113,8 +113,7 @@ export interface OrderFilters {
 }
 
 export  interface DateSlot {
-    dateSlotId: number;
+    slotId: number;
     visitTime: string;
     masterId: number;
-    status: string;
 }
