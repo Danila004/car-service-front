@@ -1,10 +1,3 @@
-export interface CarModel {
-    id: number;
-    name: string;
-    year: number;
-    price: number;
-}
-
 export interface Model {
     modelId: number;
     modelName: string;
@@ -26,16 +19,6 @@ export interface Service {
     status: string;
 }
 
-// Детальная информация об автомобиле
-export interface CarDetails {
-    brand: string;
-    brandId: number;
-    model: string;
-    modelId: number;
-    year: number;
-    basePrice: number;
-}
-
 // Услуга с ценой для конкретной модели
 export interface ServiceWithPrice {
     priceId: number
@@ -52,23 +35,6 @@ export interface Price {
     modelId: number;
     price: number;
     status: string;
-}
-
-export interface SelectedService {
-    id: number;
-    name: string;
-    price: number;
-}
-
-// Выбранная модель с услугами (для модального окна)
-export interface SelectedModel {
-    brand: string;
-    brandId: number;
-    model: string;
-    modelId: number;
-    year: number;
-    basePrice: number;
-    services: ServiceWithPrice[];
 }
 
 // Тип модального окна
@@ -102,9 +68,6 @@ export interface PageUsers {
     totalPages: number;
 }
 
-// Статус заказа
-export type OrderStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
-
 // Заказ
 export interface Order {
     brandName: string;
@@ -115,6 +78,13 @@ export interface Order {
     stateNumber: string;
     visitDate: string;
     visitTime: string;
+}
+
+export interface CreateOrder extends Order {
+    authUserId: number | null;
+    userName: string;
+    userPhoneNumber: string;
+    masterId: number;
 }
 
 export interface PageOrders {
@@ -142,135 +112,9 @@ export interface OrderFilters {
     licensePlate?: string;
 }
 
-// Состояние пагинации
-export interface PaginationState {
-    page: number;
-    hasMore: boolean;
-    loading: boolean;
-}
-
-// ===== Для мастера =====
-
-// Заказ для мастера (расширенный)
-export interface MasterOrder extends Order {
-    isCompleted: boolean;
-}
-
-// Статус выполнения заказа
-export interface OrderCompletion {
-    orderId: number;
-    completed: boolean;
-    comment?: string;
-}
-
-// ===== Для страницы автомобилей =====
-
-// Статус элемента
-export type ItemStatus = 'active' | 'blocked';
-
-// Марка автомобиля
-export interface CarBrand {
-    id: number;
-    name: string;
-    status: ItemStatus;
-    models: CarModelForAdmin[];
-}
-
-// Модель автомобиля
-export interface CarModelForAdmin {
-    id: number;
-    name: string;
-    year: number;
-    status: ItemStatus;
-    services: ModelService[];
-}
-
-// Услуга для модели
-export interface ModelService {
-    id: number;
-    name: string;
-    price: number;
-    status: ItemStatus;
-}
-
-// Для редактирования услуги
-export interface EditingService {
-    modelId: number;
-    serviceId: number;
-    name: string;
-    price: number;
-}
-
-// Услуга автосервиса
-export interface ServiceRow {
-    id: number;
-    name: string;
-    status: ItemStatus;
-}
-
-// ===== Для аутентификации =====
-
-// Данные для входа
-export interface LoginCredentials {
-    phone: string;
-    password: string;
-}
-
-// Ответ после входа
-export interface LoginResponse {
-    success: boolean;
-    message?: string;
-    user?: User;
-}
-
-// ===== Для регистрации =====
-
-// Данные для регистрации
-export interface RegisterData {
-    firstName: string;
-    lastName: string;
-    phone: string;
-    password: string;
-}
-
-// Ответ после регистрации
-export interface RegisterResponse {
-    success: boolean;
-    message?: string;
-    user?: User;
-}
-
-// ===== Для создания заказа =====
-
-// Данные для создания заказа
-export interface CreateOrderData {
-    brandId: number;
-    brandName: string;
-    modelId: number;
-    modelName: string;
-    year: number;
-    licensePlate: string;
-    date: string;
-    time: string;
-    services: SelectedService[];
-    clientName?: string;
-    clientPhone?: string;
-}
-
-// Выбранная услуга
-export interface SelectedService {
-    id: number;
-    name: string;
-    price: number;
-}
-
-// Доступные временные слоты
-export const TIME_SLOTS = [
-    '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'
-];
-
-export enum icons {
-    CAR = '🚗',
-    ERROR = '⚠️',
-    SERVICE = '🔧'
+export  interface DateSlot {
+    dateSlotId: number;
+    visitTime: string;
+    masterId: number;
+    status: string;
 }

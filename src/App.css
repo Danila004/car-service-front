@@ -769,7 +769,7 @@ body {
 }
 
 /* Кнопка отмены записи */
-.cancel-button-container .work-button-container {
+.buttons-container {
     display: flex;
     justify-content: flex-end;
     margin-top: 20px;
@@ -777,9 +777,9 @@ body {
     border-top: 1px solid #e0e0e0;
 }
 
-.cancel-order-btn .work-order-btn {
+.cancel-order-btn, .work-order-btn{
     padding: 10px 20px;
-    background: #dc3545;
+    margin-right: 5px;
     color: white;
     border: none;
     border-radius: 10px;
@@ -792,17 +792,20 @@ body {
     gap: 8px;
 }
 
-.work-order-btn:hover {
+.work-order-btn {
     background: green;
 }
 
-.cancel-order-btn:hover {
-    background: #c82333;
+.cancel-order-btn {
+    background: red;
+}
+
+.cancel-order-btn:hover, .work-order-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
-.cancel-order-btn:active {
+.cancel-order-btn:active, .work-order-btn:active {
     transform: translateY(0);
 }
 

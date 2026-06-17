@@ -1,26 +1,16 @@
 import type {
-    Brand,
-    Model, Order, PageOrders, PageUsers, Price,
+    Brand, CreateOrder,
+    Model, Order, Price,
     Service, ServiceWithPrice
 } from '../types';
 
 // Базовый URL API
 const API_BASE_URL = 'http://localhost:8080';
 
-// Вспомогательная функция для обработки ошибок
-const handleResponse = async <T>(response: Response): Promise<T> => {
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `HTTP error! status: ${response.status}`);
-    }
-    return response.json().then(data => data.content ?? data);
-};
-
 // API объект с методами
 export const api = {
-    getBrands: async (params: string): Promise<Brand[]> => {
-        const response = await fetch(`${API_BASE_URL}/brands${params}`);
-        return handleResponse<Brand[]>(response);
+    getBrands: async (params: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/brands${params}`);
     },
 
     getSimpleBrands: async (params: string): Promise<Response> => {
@@ -69,9 +59,8 @@ export const api = {
     },
 
     // Получить все услуги
-    getServices: async (params: string): Promise<Service[]> => {
-        const response = await fetch(`${API_BASE_URL}/services${params}`);
-        return handleResponse<Service[]>(response);
+    getServices: async (params: string): Promise<Response> => {
+        return  await fetch(`${API_BASE_URL}/services${params}`);
     },
 
     getSimpleServices: async (params: string): Promise<Response> => {
@@ -119,9 +108,8 @@ export const api = {
             body: JSON.stringify(prices)});
     },
 
-    getUsers: async (params: string): Promise<PageUsers> => {
-        const response = await fetch(`${API_BASE_URL}/users${params}`);
-        return handleResponse<PageUsers>(response);
+    getUsers: async (params: string): Promise<Response> => {
+        return  await fetch(`${API_BASE_URL}/users${params}`);
     },
 
     getSimpleUsers: async (params: string): Promise<Response> => {
@@ -154,19 +142,16 @@ export const api = {
             body: JSON.stringify(newWorkStatus)});
     },
 
-    getOrders: async (params: string): Promise<PageOrders> => {
-        const response = await fetch(`${API_BASE_URL}/orders${params}`);
-        return handleResponse<PageOrders>(response);
+    getOrders: async (params: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/orders${params}`);
     },
 
-    getOrdersForUser: async (params: string): Promise<PageOrders> => {
-        const response = await fetch(`${API_BASE_URL}/users${params}`);
-        return handleResponse<PageOrders>(response);
+    getOrdersForUser: async (params: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/users${params}`);
     },
 
-    getOrdersForMaster: async (params: string): Promise<Order[]> => {
-        const response = await fetch(`${API_BASE_URL}/users${params}`);
-        return handleResponse<Order[]>(response);
+    getOrdersForMaster: async (params: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/users${params}`);
     },
 
     getSimpleOrdersForMaster: async (masterId: number, params: string): Promise<Response> => {
@@ -203,5 +188,18 @@ export const api = {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(newOrderStatus)});
+    },
+
+    createOrder: async (newOrder: CreateOrder, services: number[]): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/orders}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({newOrder, services})});
+    },
+
+    getDateSlots: async (params: string): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/dateSlots${params}`)
     }
 };

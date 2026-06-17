@@ -167,30 +167,25 @@ function OrderItem({ order, onDeleteOrder, userRole, onComplete, onChangeStatusT
                         </>
                     )}
 
-                    {/* Кнопка отмены записи */}
-                    {order.orderStatus === 'REGISTRED' && userRole === 'ADMIN' && (
-                        <div className="work-button-container">
-                            <button
-                                className="work-order-btn"
-                                onClick={() => handleChangeStatus('WORK')}
-                            >
-                                ✓ Принять
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Кнопка отмены записи */}
+                    {/*Кнопки отмены и принятия заказа*/}
                     {order.orderStatus === 'REGISTRED' && (
-                        <div className="cancel-button-container">
+                        <div className="buttons-container">
+                            {userRole === 'ADMIN' && (
+                                <button
+                                    className="work-order-btn"
+                                    onClick={() => handleChangeStatus('WORK')}
+                                >
+                                    Принять
+                                </button>)}
+
                             <button
                                 className="cancel-order-btn"
-                                onClick={() => handleCancel()}
+                                onClick={handleCancel}
                             >
-                                ❌ Отменить
+                                Отменить
                             </button>
                         </div>
                     )}
-
                 </div>
             )}
         </div>

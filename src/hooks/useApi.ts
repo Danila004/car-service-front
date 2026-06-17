@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import type { ApiState } from '../types';
 
 export function useApi<T>(
-    apiFunction: (params: string) => Promise<T>,
+    apiFunction: (params: string) => Promise<Response>,
     initialParams: string,
     dependencies: React.DependencyList = []
 ): ApiState<T> & { refetch: (params: string) => Promise<void> } {
@@ -12,7 +12,8 @@ export function useApi<T>(
     const fetchData = useCallback(async (params: string) => {
         setError(null);
         try {
-            const result = await apiFunction(params);
+            const response = await apiFunction(params);
+            const result: T = await response.json();
             setData(result);
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Произошла неизвестная ошибка';

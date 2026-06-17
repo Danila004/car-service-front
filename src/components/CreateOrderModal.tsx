@@ -1,57 +1,42 @@
 import React, { useState } from 'react';
-import {CarModel, SelectedModel, ServiceWithPrice} from '../types';
+import {Brand, CreateOrder, DateSlot, Model, ServiceWithPrice} from '../types';
 import { api } from '../services/api';
-import { CarBrand, SelectedService, TIME_SLOTS, User } from '../types';
+import { User } from '../types';
 
 interface CreateOrderModalProps {
     isOpen: boolean;
     onClose: () => void;
-    brands: CarBrand[];
     currentUser?: User | null;
 }
 
-// Все доступные услуги
-const allServices: SelectedService[] = [
-    { id: 1, name: 'Замена масла', price: 3000 },
-    { id: 2, name: 'Диагностика', price: 2000 },
-    { id: 3, name: 'Шиномонтаж', price: 2500 },
-    { id: 4, name: 'Ремонт подвески', price: 8000 },
-    { id: 5, name: 'Покраска', price: 15000 },
-    { id: 6, name: 'Замена тормозных колодок', price: 3500 },
-    { id: 7, name: 'Замена ремня ГРМ', price: 5000 },
-    { id: 8, name: 'Регулировка развал-схождения', price: 2000 },
-    { id: 9, name: 'Замена фильтров', price: 1500 },
-    { id: 10, name: 'Замена свечей зажигания', price: 2500 },
-];
-
-function CreateOrderModal({ isOpen, onClose, brands, currentUser }: CreateOrderModalProps) {
+function CreateOrderModal({ isOpen, onClose, currentUser }: CreateOrderModalProps) {
     const isAuthenticated = !!currentUser;
 
     // Основные поля
-    const [selectedBrandId, setSelectedBrandId] = useState<number>(brands[0]?.id || 0);
+    const [selectedBrandId, setSelectedBrandId] = useState<number>(0);
     const [selectedModelId, setSelectedModelId] = useState<number>(0);
-    const [year, setYear] = useState<number>(new Date().getFullYear());
+    const [models, setModels] = useState<Model[]>([]);
+    const [brands, setBrands] = useState<Brand[]>([]);
+    const [dateSlots, setDateSlots] = useState<DateSlot[]>([]);
+    const [year, setYear] = useState<number>(0);
     const [licensePlate, setLicensePlate] = useState<string>('');
     const [selectedDate, setSelectedDate] = useState<string>('');
-    const [selectedTime, setSelectedTime] = useState<string>('');
+    const [selectedTimeId, setSelectedTimeId] = useState<number>(0);
 
     // Поля для незарегистрированного пользователя
     const [clientName, setClientName] = useState<string>('');
     const [clientPhone, setClientPhone] = useState<string>('');
 
     // Услуги
-    const [services, setServices] = useState<SelectedService[]>([]);
-    const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
-
+    const [services, setServices] = useState<ServiceWithPrice[]>([]);
+    const [selectedServices, setSelectedServices] = useState<ServiceWithPrice[]>([]);
     const [error, setError] = useState<string>('');
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [availableModels, setAvailableModels] = useState<CarModel[]>([]);
 
     // Расчет скидки
     const getDiscount = (): number => {
         if (!isAuthenticated) return 0;
-        if (currentUser?.role === 'client') return 10;
-        if (currentUser?.role === 'master' || currentUser?.role === 'admin') return 20;
+        if (currentUser?.userType === 'CLIENT') return 10;
+        if (currentUser?.userType === 'MASTER' || currentUser?.userType === 'ADMIN') return 20;
         return 0;
     };
 
@@ -62,53 +47,78 @@ function CreateOrderModal({ isOpen, onClose, brands, currentUser }: CreateOrderM
 
     // Сброс состояния при открытии
     React.useEffect(() => {
-        if (isOpen && brands.length > 0) {
-            setSelectedBrandId(brands[0]?.id || 0);
-            setSelectedModelId(0);
+        const handlePanelClick = async () => {
+            const response = await api.getSimpleBrands( "?status=ACTIVE");
+            if(!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                setError(error);
+                return;
+            }
+            const brands : Brand[] = await response.json();
+            setBrands(brands);
+        };
+        if (isOpen) {
             setYear(new Date().getFullYear());
             setLicensePlate('');
             setSelectedDate('');
-            setSelectedTime('');
+            setSelectedTimeId(0);
             setSelectedServices([]);
             setClientName('');
             setClientPhone('');
             setError('');
+            handlePanelClick();
         }
-    }, [isOpen, brands]);
+    }, [isOpen]);
 
     // Обновление списка моделей при выборе марки
     React.useEffect(() => {
         const loadModels = async () => {
             setError('');
-            try {
-                const models = await api.getModelsByBrand(selectedBrandId);
-                setAvailableModels(models);
-            } catch (err) {
-                setError('Ошибка загрузки услуг');
-                console.error(err);
-            } finally {
-                setSelectedModelId(0);
+            const response = await api.getModelsByBrand(selectedBrandId, "?status=ACTIVE");
+            if(!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                setError(error);
+                return;
             }
+            const models : Model[] = await response.json();
+            setModels(models);
         };
-
-        loadModels();
+        if(selectedBrandId !== 0)
+            loadModels();
     }, [selectedBrandId]);
 
     //Загрузка услуг
     React.useEffect(() => {
         const loadServices = async () => {
             setError('');
-            try {
-                const services = await api.getServicesForModel(selectedBrandId, selectedModelId);
-                setServices(services);
-            } catch (err) {
-                setError('Ошибка загрузки услуг');
-                console.error(err);
+            const response = await api.getServicesForModel(selectedModelId, "?status=ACTIVE");
+            if(!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                setError(error);
+                return;
             }
+            const services = await response.json();
+            setServices(services);
         };
-
-        loadServices();
+        if(selectedModelId !== 0)
+            loadServices();
     }, [selectedModelId]);
+
+    React.useEffect(() => {
+        const loadDateSlots = async () => {
+            setError('');
+            const response = await api.getDateSlots("?date=" + selectedDate);
+            if(!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                setError(error);
+                return;
+            }
+            const dateSlots: DateSlot[] = await response.json();
+            setDateSlots(dateSlots);
+        };
+        if(selectedDate)
+            loadDateSlots();
+    }, [selectedDate]);
 
     const getMinDate = () => {
         const today = new Date();
@@ -121,18 +131,18 @@ function CreateOrderModal({ isOpen, onClose, brands, currentUser }: CreateOrderM
         return maxDate.toISOString().split('T')[0];
     };
 
-    const handleServiceToggle = (service: SelectedService) => {
+    const handleServiceToggle = (service: ServiceWithPrice) => {
         setSelectedServices(prev => {
-            const exists = prev.some(s => s.id === service.id);
+            const exists = prev.some(s => s.serviceId === service.serviceId);
             if (exists) {
-                return prev.filter(s => s.id !== service.id);
+                return prev.filter(s => s.serviceId !== service.serviceId);
             } else {
                 return [...prev, service];
             }
         });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
@@ -155,11 +165,6 @@ function CreateOrderModal({ isOpen, onClose, brands, currentUser }: CreateOrderM
         }
 
         // Общая валидация
-        if (!selectedModelId) {
-            setError('Выберите модель автомобиля');
-            return;
-        }
-
         const currentYear = new Date().getFullYear();
         if (year < 1900 || year > currentYear + 1) {
             setError(`Год выпуска должен быть между 1900 и ${currentYear + 1}`);
@@ -176,7 +181,7 @@ function CreateOrderModal({ isOpen, onClose, brands, currentUser }: CreateOrderM
             return;
         }
 
-        if (!selectedTime) {
+        if (selectedTimeId === 0) {
             setError('Выберите время записи');
             return;
         }
@@ -186,17 +191,33 @@ function CreateOrderModal({ isOpen, onClose, brands, currentUser }: CreateOrderM
             return;
         }
 
-        const selectedBrand = brands.find(b => b.id === selectedBrandId);
-        const selectedModel = availableModels.find(m => m.id === selectedModelId);
-
-        if (!selectedBrand || !selectedModel) {
+        if (selectedBrandId === 0 || selectedModelId === 0) {
             setError('Ошибка при выборе автомобиля');
             return;
         }
 
-        setIsLoading(true);
-        setTimeout(() => {}, 100);
-        setIsLoading(false);
+        const newOrder: CreateOrder = {
+            orderId: 0,
+            brandName: brands.find(brand => brand.brandId === selectedBrandId)?.brandName,
+            modelName: models.find(model => model.modelId === selectedModelId)?.modelName,
+            orderStatus: 'REGISTRED',
+            price: finalPrice,
+            stateNumber: licensePlate,
+            visitDate: selectedDate,
+            visitTime: dateSlots.find(ds => ds.dateSlotId === selectedTimeId)?.visitTime,
+            authUserId: currentUser?.authUserId ?? null,
+            userName: currentUser?.userName ?? clientName,
+            userPhoneNumber: currentUser?.phoneNumber ?? clientPhone,
+            masterId: dateSlots.find(ds => ds.dateSlotId === selectedTimeId)?.masterId
+        };
+        const services = selectedServices.map(s => s.serviceId);
+
+        const response = await api.createOrder(newOrder, services);
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
+        }
+        handleClose();
     };
 
     const handleClose = () => {
@@ -252,12 +273,14 @@ function CreateOrderModal({ isOpen, onClose, brands, currentUser }: CreateOrderM
                                 <label>Марка автомобиля</label>
                                 <select
                                     value={selectedBrandId}
-                                    onChange={(e) => setSelectedBrandId(Number(e.target.value))}
+                                    onChange={(e) => {
+                                        setSelectedBrandId(Number(e.target.value));
+                                    }}
                                 >
                                     <option value={0}>Выберите марку</option>
                                     {brands.map((brand) => (
-                                        <option key={brand.id} value={brand.id}>
-                                            {brand.name}
+                                        <option key={brand.brandId} value={brand.brandId}>
+                                            {brand.brandName}
                                         </option>
                                     ))}
                                 </select>
@@ -266,13 +289,15 @@ function CreateOrderModal({ isOpen, onClose, brands, currentUser }: CreateOrderM
                                 <label>Модель автомобиля</label>
                                 <select
                                     value={selectedModelId}
-                                    onChange={(e) => setSelectedModelId(Number(e.target.value))}
-                                    disabled={availableModels.length === 0}
+                                    onChange={(e) => {
+                                        setSelectedModelId(Number(e.target.value));
+                                    }}
+                                    disabled={models.length === 0}
                                 >
                                     <option value={0}>Выберите модель</option>
-                                    {availableModels.map((model) => (
-                                        <option key={model.id} value={model.id}>
-                                            {model.name}
+                                    {models.map((model) => (
+                                        <option key={model.modelId} value={model.modelId}>
+                                            {model.modelName}
                                         </option>
                                     ))}
                                 </select>
@@ -317,14 +342,14 @@ function CreateOrderModal({ isOpen, onClose, brands, currentUser }: CreateOrderM
                             <div className="form-field half">
                                 <label>Время записи</label>
                                 <select
-                                    value={selectedTime}
-                                    onChange={(e) => setSelectedTime(e.target.value)}
+                                    value={selectedTimeId}
+                                    onChange={(e) => setSelectedTimeId(Number(e.target.value))}
                                     disabled={!selectedDate}
                                 >
                                     <option value="">Выберите время</option>
-                                    {TIME_SLOTS.map((time) => (
-                                        <option key={time} value={time}>
-                                            {time}
+                                    {dateSlots.map((time) => (
+                                        <option key={time.dateSlotId} value={time.dateSlotId}>
+                                            {time.visitTime}
                                         </option>
                                     ))}
                                 </select>
@@ -335,15 +360,15 @@ function CreateOrderModal({ isOpen, onClose, brands, currentUser }: CreateOrderM
                         <div className="services-selection-section">
                             <div className="section-title">🔧 Выберите услуги</div>
                             <div className="services-checkbox-list-order">
-                                {allServices.map((service) => (
-                                    <label key={service.id} className="service-checkbox-order">
+                                {services.map((service) => (
+                                    <label key={service.serviceId} className="service-checkbox-order">
                                         <input
                                             type="checkbox"
-                                            checked={selectedServices.some(s => s.id === service.id)}
+                                            checked={selectedServices.some(s => s.serviceId === service.serviceId)}
                                             onChange={() => handleServiceToggle(service)}
                                         />
-                                        <span className="service-name-order">{service.name}</span>
-                                        <span className="service-price-order">{service.price.toLocaleString()} ₽</span>
+                                        <span className="service-name-order">{service.serviceName}</span>
+                                        <span className="service-price-order">{service.price} ₽</span>
                                     </label>
                                 ))}
                             </div>
@@ -383,12 +408,6 @@ function CreateOrderModal({ isOpen, onClose, brands, currentUser }: CreateOrderM
                             </div>
                         )}
 
-                    </div>
-
-                    <div className="modal-footer">
-                        <button type="submit" className="create-order-btn" disabled={isLoading}>
-                            {isLoading ? 'Запись...' : 'Записаться'}
-                        </button>
                     </div>
                 </form>
             </div>

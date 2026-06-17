@@ -149,7 +149,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
     }
 
     if (showOrdersPage) {
-        return <OrdersPage onBack={handleBackFromOrdersPage} user={user} onDeleteOrder={handleDeleteOrder} />;
+        return <OrdersPage onBack={handleBackFromOrdersPage} user={user} />;
     }
 
     if (showUsersPage) {
