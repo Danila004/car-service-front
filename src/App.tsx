@@ -53,7 +53,6 @@ function App() {
     };
 
     const handleRegisterSuccess = (user: User) => {
-        setUsers(prev => [...prev, user]);
         setCurrentUser(user);
         setIsAuthenticated(true);
         setShowCabinet(true);
@@ -113,7 +112,6 @@ function App() {
                 isOpen={showRegisterModal}
                 onClose={() => setShowRegisterModal(false)}
                 onRegisterSuccess={handleRegisterSuccess}
-                existingUsers={users}
             />
 
             <CreateOrderModal

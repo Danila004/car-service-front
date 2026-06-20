@@ -115,7 +115,6 @@ function AddModelModal({ isOpen, onClose, onAdd, existingBrands}: AddModelModalP
                             <label>Год выпуска</label>
                             <input
                                 type="number"
-                                value={year}
                                 onChange={(e) => setYear(Number(e.target.value))}
                             />
                         </div>

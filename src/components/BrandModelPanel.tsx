@@ -33,6 +33,7 @@ function BrandModelPanel({ onModelSelect, selectedBrand, setSelectedBrand, setSe
         if(!response.ok) {
             const error = await response.json().catch(() => ({}));
             setError(error);
+            return;
         }
         const brandModels : Model[] = await response.json();
         setModels(brandModels);
@@ -45,6 +46,7 @@ function BrandModelPanel({ onModelSelect, selectedBrand, setSelectedBrand, setSe
         if(!response.ok) {
             const error = await response.json().catch(() => ({}));
             setError(error);
+            return;
         }
         const modelServices : ServiceWithPrice[] = await response.json();
         setServices(modelServices);

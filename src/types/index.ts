@@ -37,9 +37,6 @@ export interface Price {
     status: string;
 }
 
-// Тип модального окна
-export type ModalType = 'login' | 'register' | 'booking' | 'services' | null;
-
 // Состояние API
 export interface ApiState<T> {
     data: T | null;
@@ -116,4 +113,10 @@ export  interface DateSlot {
     slotId: number;
     visitTime: string;
     masterId: number;
+}
+
+export interface RegisterData {
+    userName: string;
+    phoneNumber: string;
+    password: string;
 }

@@ -1,6 +1,6 @@
 import type {
     Brand, CreateOrder,
-    Model, Order, Price,
+    Model, Order, Price, RegisterData,
     Service, ServiceWithPrice
 } from '../types';
 
@@ -210,5 +210,14 @@ export const api = {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(newStatus)});
+    },
+
+    registration: async (data: RegisterData): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/signup`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)});
     },
 };

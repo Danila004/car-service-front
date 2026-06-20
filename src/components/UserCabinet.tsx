@@ -3,7 +3,6 @@ import MasterOrdersPage from './MasterOrdersPage';
 import UsersPage from './UsersPage';
 import CreateOrderModal from './CreateOrderModal.tsx';
 import {Order, PageOrders, User} from '../types';
-import {carsData} from "../data/carsData.ts";
 import CarsList from "./CarsList.tsx";
 import ServicesList from "./ServicesList.tsx";
 import OrderItem from "./OrderItem.tsx";
@@ -18,7 +17,7 @@ interface UserCabinetProps {
 }
 
 function UserCabinet({ user, onLogout }: UserCabinetProps) {
-    const { data: apiOrders, error: apiError } = useApi<PageOrders>(api.getOrdersForUser, "/" + user.authUserId +
+    const { data: apiOrders, error: apiError } = useApi<PageOrders>(api.getOrdersForUser, "/" + user.userId +
         "/orders?page=0");
     const [orders, setOrders] = useState<Order[] | null>([]);
     const [error, setError] = useState<string>("");
@@ -41,7 +40,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
     }, [apiOrders]);
 
     const handleFilterClick = async () => {
-        const response = await api.getSimpleOrdersForUser(user.authUserId,
+        const response = await api.getSimpleOrdersForUser(user.userId,
             (inputStateNumber === "" ? "?" : "?stateNumber=" + inputStateNumber) +
             (inputDateFrom === "" ? "" : "&start=" + inputDateFrom) +
             (inputDateTo === "" ? "" : "&end=" + inputDateTo) +
@@ -59,7 +58,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
     };
 
     const handleFilterReset = async () => {
-        const response = await api.getSimpleOrdersForUser(user.authUserId,
+        const response = await api.getSimpleOrdersForUser(user.userId,
             "?page=0");
         if(!response.ok) {
             const error = await response.json().catch(() => ({}));
@@ -77,7 +76,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
     };
 
     const handleMoreButtonClick = async () => {
-        const response = await api.getSimpleOrdersForUser(user.authUserId,
+        const response = await api.getSimpleOrdersForUser(user.userId,
             (inputStateNumber === "" ? "?" : "?stateNumber=" + inputStateNumber) +
             (inputDateFrom === "" ? "" : "&start=" + inputDateFrom) +
             (inputDateTo === "" ? "" : "&end=" + inputDateTo) +
@@ -288,7 +287,7 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
                     </div>
 
                     <div className="order-list">
-                        {orders?.length === 0 ? (
+                        {orders === null || orders.length === 0 ? (
                             <div className="empty-orders">Нет записей</div>
                         ) : (
                             <>
@@ -315,7 +314,6 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
                 <CreateOrderModal
                     isOpen={showCreateOrderModal}
                     onClose={() => setShowCreateOrderModal(false)}
-                    brands={carsData}
                     currentUser={user}
                 />
             </div>

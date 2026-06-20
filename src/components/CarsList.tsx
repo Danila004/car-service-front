@@ -76,10 +76,9 @@ function CarsList({onBack}: CarListProps) {
             setError(error);
             return;
         }
-        brands?.map((b) => {
-            if(b.brandId === brand.brandId)
-                b.status = newStatus;
-        })
+        setBrands(prev => (prev ?? []).map(b => {
+            return b.brandId === brand.brandId ? { ...b, status: newStatus } : b;
+        }));
     }
 
     if (apiError) {

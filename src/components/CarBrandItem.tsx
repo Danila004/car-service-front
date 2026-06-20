@@ -209,7 +209,7 @@ function CarBrandItem({ brand, onUpdateBrand}: CarBrandItemProps) {
                                     className={`model-item ${selectedModel?.modelId === model.modelId ? 'selected' : ''}`}
                                     onClick={() => handleModelClick(model)}
                                 >
-                                    <div className="model-name">{model.modelName} {new Date(model.modelYear).getFullYear()}</div>
+                                    <div className="model-name">{model.modelName} ({model.modelYear})</div>
                                     <div
                                         className={`model-status ${getStatusClass(model.status)} status-clickable`}
                                         onMouseEnter={() => setShowModelStatusDropdown(model.modelId)}

@@ -1,8 +1,7 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {Brand, CreateOrder, DateSlot, Model, ServiceWithPrice} from '../types';
 import { api } from '../services/api';
 import { User } from '../types';
-import {useApi} from "../hooks/useApi.ts";
 
 interface CreateOrderModalProps {
     isOpen: boolean;
@@ -192,8 +191,19 @@ function CreateOrderModal({ isOpen, onClose, currentUser }: CreateOrderModalProp
         }
 
         // Общая валидация
+        if (selectedBrandId === 0) {
+            setError('Ошибка при выборе марки');
+            return;
+        }
+
+        if (selectedBrandId === 0) {
+            setError('Ошибка при выборе модели');
+            return;
+        }
+
         const currentYear = new Date().getFullYear();
-        if (year < 1900 || year > currentYear + 1) {
+        if (year < 1900 || year > currentYear + 1 ||
+            year < models.find(model => model.modelId === selectedModelId)?.modelYear) {
             setError(`Год выпуска должен быть между 1900 и ${currentYear + 1}`);
             return;
         }
@@ -213,13 +223,19 @@ function CreateOrderModal({ isOpen, onClose, currentUser }: CreateOrderModalProp
             return;
         }
 
-        if (selectedServices.length === 0) {
-            setError('Выберите хотя бы одну услугу');
+        const currentDateTime = new Date();
+        const [hours, minutes] = dateSlots.find(slot => slot.slotId === selectedTimeId)?.visitTime
+            .slice(0,5)
+            .split(":");
+        const selectedDateTime = new Date();
+        selectedDateTime.setHours(hours, minutes, 0, 0)
+        if (selectedDateTime <= currentDateTime) {
+            setError('Выбранное время уже недоступно');
             return;
         }
 
-        if (selectedBrandId === 0 || selectedModelId === 0) {
-            setError('Ошибка при выборе автомобиля');
+        if (selectedServices.length === 0) {
+            setError('Выберите хотя бы одну услугу');
             return;
         }
 
@@ -244,7 +260,6 @@ function CreateOrderModal({ isOpen, onClose, currentUser }: CreateOrderModalProp
             const error = await response.json().catch(() => ({}));
             setError(error);
         }
-        console.log(response);
         handleClose();
     };
 
@@ -280,7 +295,7 @@ function CreateOrderModal({ isOpen, onClose, currentUser }: CreateOrderModalProp
                                             type="text"
                                             value={clientName}
                                             onChange={(e) => setClientName(e.target.value)}
-                                            placeholder="Введите имя и фамилию"
+                                            placeholder="Введите имя"
                                         />
                                     </div>
                                     <div className="form-field half">
@@ -337,10 +352,7 @@ function CreateOrderModal({ isOpen, onClose, currentUser }: CreateOrderModalProp
                                 <label>Год выпуска</label>
                                 <input
                                     type="number"
-                                    value={year}
                                     onChange={(e) => setYear(Number(e.target.value))}
-                                    min="1900"
-                                    max={new Date().getFullYear() + 1}
                                     step="1"
                                 />
                             </div>
@@ -377,7 +389,7 @@ function CreateOrderModal({ isOpen, onClose, currentUser }: CreateOrderModalProp
                                     <option value="">Выберите время</option>
                                     {dateSlots.map((time) => (
                                         <option key={time.slotId} value={time.slotId}>
-                                            {time.visitTime}
+                                            {time.visitTime.slice(0, 5)}
                                         </option>
                                     ))}
                                 </select>

@@ -1,23 +1,21 @@
 import React, { useState } from 'react';
 import { User, RegisterData } from '../types';
+import {api} from "../services/api.ts";
 
 interface RegisterModalProps {
     isOpen: boolean;
     onClose: () => void;
     onRegisterSuccess: (user: User) => void;
-    existingUsers: User[];
 }
 
-function RegisterModal({ isOpen, onClose, onRegisterSuccess, existingUsers }: RegisterModalProps) {
+function RegisterModal({ isOpen, onClose, onRegisterSuccess }: RegisterModalProps) {
     const [formData, setFormData] = useState<RegisterData>({
-        firstName: '',
-        lastName: '',
-        phone: '',
+        userName: '',
+        phoneNumber: '',
         password: '',
     });
     const [confirmPassword, setConfirmPassword] = useState<string>('');
     const [error, setError] = useState<string>('');
-    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -25,32 +23,26 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, existingUsers }: Re
         setError('');
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
         // Валидация имени
-        if (!formData.firstName.trim()) {
+        if (!formData.userName.trim()) {
             setError('Введите имя');
             return;
         }
 
-        // Валидация фамилии
-        if (!formData.lastName.trim()) {
-            setError('Введите фамилию');
-            return;
-        }
-
         // Валидация телефона
-        if (!formData.phone.trim()) {
+        if (!formData.phoneNumber.trim()) {
             setError('Введите номер телефона');
             return;
         }
 
         // Простая валидация формата телефона (должен содержать только цифры и +)
-        const phoneRegex = /^\+?\d{10,12}$/;
-        const cleanPhone = formData.phone.replace(/\s/g, '');
-        if (!phoneRegex.test(cleanPhone) && !/^\+\d{11}$/.test(cleanPhone)) {
+        const phoneRegex = /^8\d{10}$/;
+        const cleanPhone = formData.phoneNumber.replace(/\s/g, '');
+        if (!phoneRegex.test(cleanPhone)) {
             setError('Введите корректный номер телефона (например, +79991234567)');
             return;
         }
@@ -73,44 +65,28 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, existingUsers }: Re
         }
 
         // Проверка на существующего пользователя
-        const existingUser = existingUsers.find(
-            u => u.phone === formData.phone.trim()
-        );
-
-        if (existingUser) {
-            setError('Пользователь с таким номером телефона уже существует');
+        const response = await api.registration(formData);
+        if(!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            setError(error);
             return;
         }
-
-        // Имитация регистрации
-        setIsLoading(true);
-        setTimeout(() => {
-            const newUser: User = {
-                id: Math.max(...existingUsers.map(u => u.id), 0) + 1,
-                name: `${formData.firstName} ${formData.lastName}`,
-                email: `${formData.firstName.toLowerCase()}.${formData.lastName.toLowerCase()}@example.com`,
-                phone: formData.phone.trim(),
-                role: 'client',
-            };
-
-            setIsLoading(false);
-            onRegisterSuccess(newUser);
-            setFormData({
-                firstName: '',
-                lastName: '',
-                phone: '',
-                password: '',
-            });
-            setConfirmPassword('');
-            onClose();
-        }, 500);
+        const newUser: User = await response.json();
+        setFormData({
+            userName: '',
+            phoneNumber: '',
+            password: '',
+        });
+        setConfirmPassword('');
+        setError('');
+        onClose();
+        onRegisterSuccess(newUser);
     };
 
     const handleClose = () => {
         setFormData({
-            firstName: '',
-            lastName: '',
-            phone: '',
+            userName: '',
+            phoneNumber: '',
             password: '',
         });
         setConfirmPassword('');
@@ -140,21 +116,11 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, existingUsers }: Re
                                 <label>Имя</label>
                                 <input
                                     type="text"
-                                    name="firstName"
-                                    value={formData.firstName}
+                                    name="userName"
+                                    value={formData.userName}
                                     onChange={handleChange}
                                     placeholder="Введите имя"
                                     autoFocus
-                                />
-                            </div>
-                            <div className="form-field half">
-                                <label>Фамилия</label>
-                                <input
-                                    type="text"
-                                    name="lastName"
-                                    value={formData.lastName}
-                                    onChange={handleChange}
-                                    placeholder="Введите фамилию"
                                 />
                             </div>
                         </div>
@@ -163,8 +129,8 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, existingUsers }: Re
                             <label>Номер телефона</label>
                             <input
                                 type="tel"
-                                name="phone"
-                                value={formData.phone}
+                                name="phoneNumber"
+                                value={formData.phoneNumber}
                                 onChange={handleChange}
                                 placeholder="+7 999 123-45-67"
                             />
@@ -193,8 +159,8 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess, existingUsers }: Re
                         </div>
                     </div>
                     <div className="modal-footer">
-                        <button type="submit" className="register-btn" disabled={isLoading}>
-                            {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
+                        <button type="submit" className="register-btn">
+                            {'Зарегистрироваться'}
                         </button>
                     </div>
                 </form>
