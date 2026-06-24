@@ -16,7 +16,8 @@ function ServicesModal({ model, brand, modelServices, onClose }: ServicesModalPr
         }
     };
 
-    const services: ServiceWithPrice[] = modelServices || [];
+    const services: ServiceWithPrice[] = modelServices;
+
 
     return (
         <div className="modal-overlay" onClick={handleOverlayClick}>

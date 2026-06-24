@@ -46,7 +46,11 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
             (inputDateTo === "" ? "" : "&end=" + inputDateTo) +
             "&page=0");
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -61,7 +65,11 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
         const response = await api.getSimpleOrdersForUser(user.userId,
             "?page=0");
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -82,7 +90,11 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
             (inputDateTo === "" ? "" : "&end=" + inputDateTo) +
             "&page=" + (currentPage + 1));
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -163,11 +175,11 @@ function UserCabinet({ user, onLogout }: UserCabinetProps) {
         return <ServicesList onBack={handleBackFromServicesPage} />;
     }
 
-    if (apiError) {
+    if (apiError || error) {
         return (
             <div className="brand-panel error-panel">
                 <div className="panel-header">
-                    <span>⚠️ Ошибка загрузки данных: {apiError}</span>
+                    <span>⚠️ Ошибка загрузки данных: {apiError ? apiError : error}</span>
                 </div>
             </div>
         );

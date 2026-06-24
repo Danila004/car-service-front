@@ -38,7 +38,11 @@ function AddModelModal({ isOpen, onClose, onAdd, existingBrands}: AddModelModalP
         const selectedBrand = existingBrands?.find(brand => brand.brandId === selectedBrandId);
         const response = await api.getModelsByBrand(selectedBrandId, "");
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }

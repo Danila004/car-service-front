@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {Service, ServiceRow} from '../types';
+import {Service} from '../types';
 
 interface AddServiceItemModalProps {
     isOpen: boolean;

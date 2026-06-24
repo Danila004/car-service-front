@@ -34,7 +34,11 @@ function UsersPage({ onBack }: UsersPageProps) {
     const handleResetFilter = async () => {
         const response = await api.getSimpleUsers("?userType=" + "&page=0");
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -48,7 +52,11 @@ function UsersPage({ onBack }: UsersPageProps) {
     const handleFilterClick = async (role: string) => {
         const response = await api.getSimpleUsers("?userType=" + role + "&page=0");
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -69,7 +77,11 @@ function UsersPage({ onBack }: UsersPageProps) {
 
         const response = await api.findUserByPhone("?phoneNumber=" + phoneNumber);
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -80,7 +92,11 @@ function UsersPage({ onBack }: UsersPageProps) {
     const handleMoreButtonClick = async () => {
         const response = await api.getSimpleUsers("?userType=" + selectedRole + "&page=" + (currentPage + 1));
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -100,11 +116,11 @@ function UsersPage({ onBack }: UsersPageProps) {
         return labels[role as keyof typeof labels];
     };
 
-    if (apiError) {
+    if (apiError || error) {
         return (
             <div className="brand-panel error-panel">
                 <div className="panel-header">
-                    <span>⚠️ Ошибка загрузки данных: {apiError}</span>
+                    <span>⚠️ Ошибка загрузки данных: {apiError ? apiError : error}</span>
                 </div>
             </div>
         );

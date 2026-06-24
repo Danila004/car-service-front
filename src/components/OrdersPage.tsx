@@ -32,7 +32,11 @@ function OrdersPage({ user, onBack }: OrdersPageProps) {
             (inputDateTo === "" ? "" : "&end=" + inputDateTo) +
             "&page=0");
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -46,7 +50,11 @@ function OrdersPage({ user, onBack }: OrdersPageProps) {
     const handleFilterReset = async () => {
         const response = await api.getSimpleOrders("?page=0");
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -67,7 +75,11 @@ function OrdersPage({ user, onBack }: OrdersPageProps) {
             (inputDateTo === "" ? "" : "&end=" + inputDateTo) +
             "&page=" + (currentPage + 1));
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -87,11 +99,11 @@ function OrdersPage({ user, onBack }: OrdersPageProps) {
             order.orderId === orderId ? {...order, orderStatus: 'WORK'} : order));
     };
 
-    if (apiError) {
+    if (apiError || error) {
         return (
             <div className="brand-panel error-panel">
                 <div className="panel-header">
-                    <span>⚠️ Ошибка загрузки данных: {apiError}</span>
+                    <span>⚠️ Ошибка загрузки данных: {apiError ? apiError : error}</span>
                 </div>
             </div>
         );

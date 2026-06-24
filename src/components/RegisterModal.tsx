@@ -67,8 +67,8 @@ function RegisterModal({ isOpen, onClose, onRegisterSuccess }: RegisterModalProp
         // Проверка на существующего пользователя
         const response = await api.registration(formData);
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            setError(error);
+            const error = await response.text();
+            setError(error === 'ALREADY_EXIST' ? 'Пользователь с таким номером уже существует' : error);
             return;
         }
         const newUser: User = await response.json();

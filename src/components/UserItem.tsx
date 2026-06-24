@@ -52,14 +52,18 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
 
 
     const handleStatusChange = async (newWorkStatus: string) => {
-        const response = await api.setWorkStatus(user.authUserId, newWorkStatus);
+        const response = await api.setWorkStatus(user.userId, newWorkStatus);
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
         onUpdateUser({
-            authUserId: user.authUserId,
+            userId: user.userId,
             userName: user.userName,
             phoneNumber: user.phoneNumber,
             userType: user.userType,
@@ -69,22 +73,18 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
     };
 
     const handleRoleChange = async (newUserType: string) => {
-        const response = await api.setUserType(user.authUserId, newUserType);
+        const response = await api.setUserType(user.userId, newUserType);
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
-        if(user.userType === 'CLIENT') {
-            const response = await api.setWorkStatus(user.authUserId, 'WORK');
-            if(!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                setError(error);
-                return;
-            }
-        }
         onUpdateUser({
-            authUserId: user.authUserId,
+            userId: user.userId,
             userName: user.userName,
             phoneNumber: user.phoneNumber,
             userType: newUserType,
@@ -95,9 +95,13 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
 
     const handleUserClick = async () => {
         if(!isExpanded) {
-            const response = await api.getUserStatistics(user.authUserId);
+            const response = await api.getUserStatistics(user.userId);
             if(!response.ok) {
-                const error = await response.json().catch(() => ({}));
+                const error = await response.text();
+                if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                    setError('Пройдите авторизацию для продолжения');
+                    return;
+                }
                 setError(error);
                 return;
             }
@@ -109,6 +113,16 @@ function UserItem({ user, onUpdateUser }: UserItemProps) {
 
     // Показывать ли статус (только для мастеров и админов)
     const showWorkStatus = user.userType === 'MASTER' || user.userType === 'ADMIN';
+
+    if (error) {
+        return (
+            <div className="brand-panel error-panel">
+                <div className="panel-header">
+                    <span>⚠️ Ошибка загрузки данных: error</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={`user-item ${isExpanded ? 'expanded' : ''}`}>

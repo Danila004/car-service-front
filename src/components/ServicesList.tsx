@@ -35,7 +35,11 @@ function ServicesList({ onBack }: ServicesListProps) {
             status: newStatus
         });
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -55,7 +59,11 @@ function ServicesList({ onBack }: ServicesListProps) {
         };
         const response : Response = await api.addService(newService);
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -63,11 +71,11 @@ function ServicesList({ onBack }: ServicesListProps) {
         setServices(prev => [...(prev ?? []), newServiceWithId]);
     };
 
-    if (apiError) {
+    if (apiError || error) {
         return (
             <div className="brand-panel error-panel">
                 <div className="panel-header">
-                    <span>⚠️ Ошибка загрузки данных: {apiError}</span>
+                    <span>⚠️ Ошибка загрузки данных: {apiError ? apiError : error}</span>
                 </div>
             </div>
         );

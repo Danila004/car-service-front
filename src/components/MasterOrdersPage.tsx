@@ -11,7 +11,7 @@ interface MasterOrdersPageProps {
 
 function MasterOrdersPage({ onBack, user }: MasterOrdersPageProps) {
     const { data: apiOrders, error: apiError } = useApi<Order[]>(api.getOrdersForMaster,
-        "/" + user.authUserId + "/ordersToWork" + "?date=");
+        "/" + user.userId + "/ordersToWork" + "?date=");
     const [orders, setOrders] = useState<Order[] | null>(null);
     const [inputDate, setInputDate] = useState<string>("");
     const [error, setError] = useState<string>("");
@@ -27,9 +27,13 @@ function MasterOrdersPage({ onBack, user }: MasterOrdersPageProps) {
     };
 
     const handleFilterReset = async () => {
-        const response = await api.getSimpleOrdersForMaster(user.authUserId, "?date=");
+        const response = await api.getSimpleOrdersForMaster(user.userId, "?date=");
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -39,9 +43,13 @@ function MasterOrdersPage({ onBack, user }: MasterOrdersPageProps) {
     };
 
     const handleFilterClick = async (date: string) => {
-        const response = await api.getSimpleOrdersForMaster(user.authUserId, "?date=" + date);
+        const response = await api.getSimpleOrdersForMaster(user.userId, "?date=" + date);
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -50,11 +58,11 @@ function MasterOrdersPage({ onBack, user }: MasterOrdersPageProps) {
         setInputDate(date);
     };
 
-    if (apiError) {
+    if (apiError || error) {
         return (
             <div className="brand-panel error-panel">
                 <div className="panel-header">
-                    <span>⚠️ Ошибка загрузки данных: {apiError}</span>
+                    <span>⚠️ Ошибка загрузки данных: {apiError ? apiError : error}</span>
                 </div>
             </div>
         );

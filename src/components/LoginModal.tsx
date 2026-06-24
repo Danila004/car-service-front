@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { User } from '../types';
+import {LoginData, User} from '../types';
+import {api} from "../services/api.ts";
 
 interface LoginModalProps {
     isOpen: boolean;
@@ -19,55 +20,57 @@ const mockUsers: User[] = [
 const DEFAULT_PASSWORD = '123456';
 
 function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps) {
-    const [phone, setPhone] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
     const [error, setError] = useState<string>('');
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [formData, setFormData] = useState<LoginData>({
+        phoneNumber: '',
+        password: '',
+    });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+        setError('');
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         // Очистка предыдущей ошибки
         setError('');
 
-        // Валидация
-        if (!phone.trim()) {
-            setError('Введите номер телефона');
+        const phoneRegex = /^8\d{10}$/;
+        const cleanPhone = formData.phoneNumber.replace(/\s/g, '');
+        if (!phoneRegex.test(cleanPhone)) {
+            setError('Введите корректный номер телефона');
             return;
         }
 
-        if (!password.trim()) {
+        if (!formData.password.trim()) {
             setError('Введите пароль');
             return;
         }
 
-        // Поиск пользователя
-        const user = mockUsers.find(u => u.phoneNumber === phone.trim());
-
-        if (!user) {
-            setError('Пользователь с таким номером не найден');
+        const response = await api.login(formData);
+        if(!response.ok) {
+            const error = await response.text();
+            setError(error === 'NOT_FOUND' ? 'Неверный логин или пароль' : error);
             return;
         }
+        const user: User = await response.json();
 
-        if (password !== DEFAULT_PASSWORD) {
-            setError('Неверный пароль');
-            return;
-        }
-
-        // Имитация задержки сети
-        setIsLoading(true);
-        setTimeout(() => {
-            setIsLoading(false);
-            onLoginSuccess(user);
-            setPhone('');
-            setPassword('');
-            onClose();
-        }, 500);
+        setFormData({
+            phoneNumber: '',
+            password: '',
+        });
+        setError("");
+        onLoginSuccess(user);
     };
 
     const handleClose = () => {
-        setPhone('');
-        setPassword('');
+        setFormData({
+            phoneNumber: '',
+            password: '',
+        });
         setError('');
         onClose();
     };
@@ -92,33 +95,29 @@ function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps) {
                             <label>Номер телефона</label>
                             <input
                                 type="tel"
-                                value={phone}
-                                onChange={(e) => {
-                                    setPhone(e.target.value);
-                                    setError('');
-                                }}
+                                name="phoneNumber"
+                                value={formData.phoneNumber}
+                                onChange={handleChange}
                                 placeholder="+7 999 123-45-67"
                                 autoFocus
                             />
-                            <div className="field-hint">Введите номер в формате +7XXXXXXXXXX</div>
+                            <div className="field-hint">Введите номер в формате 8XXXXXXXXXX</div>
                         </div>
                         <div className="form-field">
                             <label>Пароль</label>
                             <input
                                 type="password"
-                                value={password}
-                                onChange={(e) => {
-                                    setPassword(e.target.value);
-                                    setError('');
-                                }}
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
                                 placeholder="Введите пароль"
                             />
                             <div className="field-hint">Демо-пароль: 123456</div>
                         </div>
                     </div>
                     <div className="modal-footer">
-                        <button type="submit" className="login-btn" disabled={isLoading}>
-                            {isLoading ? 'Вход...' : 'Войти'}
+                        <button type="submit" className="login-btn" >
+                            {'Войти'}
                         </button>
                     </div>
                 </form>

@@ -66,7 +66,11 @@ function AddServiceModal({ isOpen, onClose, onAdd, existingBrands }: AddServiceM
     const handleBrandChange = async (brandId: number) => {
         const response = await api.getModelsByBrand(brandId, "");
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -77,7 +81,11 @@ function AddServiceModal({ isOpen, onClose, onAdd, existingBrands }: AddServiceM
     const handleModelChange = async (modelId: number) => {
         const response1 = await api.getServicesForModel(modelId, "");
         if(!response1.ok) {
-            const error = await response1.json().catch(() => ({}));
+            const error = await response1.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -86,7 +94,11 @@ function AddServiceModal({ isOpen, onClose, onAdd, existingBrands }: AddServiceM
 
         const response2 = await api.getSimpleServices("");
         if(!response2.ok) {
-            const error = await response2.json().catch(() => ({}));
+            const error = await response2.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }

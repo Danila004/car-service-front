@@ -37,7 +37,11 @@ function OrderItem({ order, onDeleteOrder, userRole, onComplete, onChangeStatusT
     const handleCancel = async () => {
         const response = await api.deleteOrder(order.orderId);
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -49,7 +53,11 @@ function OrderItem({ order, onDeleteOrder, userRole, onComplete, onChangeStatusT
             const response = await (userRole === 'ADMIN' ? api.getOrderDetailsForAdmin(order.orderId) :
                 api.getOrderDetailsForUserOrMaster(order.orderId));
             if(!response.ok) {
-                const error = await response.json().catch(() => ({}));
+                const error = await response.text();
+                if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                    setError('Пройдите авторизацию для продолжения');
+                    return;
+                }
                 setError(error);
                 return;
             }
@@ -65,7 +73,11 @@ function OrderItem({ order, onDeleteOrder, userRole, onComplete, onChangeStatusT
     const handleChangeStatus = async (newOrderStatus: string) => {
         const response = await api.setOrderStatus(order.orderId, newOrderStatus);
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }

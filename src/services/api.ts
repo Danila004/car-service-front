@@ -1,6 +1,6 @@
 import type {
-    Brand, CreateOrder,
-    Model, Order, Price, RegisterData,
+    Brand, CreateOrder, LoginData,
+    Model, Price, RegisterData,
     Service, ServiceWithPrice
 } from '../types';
 
@@ -10,11 +10,15 @@ const API_BASE_URL = 'http://localhost:8080';
 // API объект с методами
 export const api = {
     getBrands: async (params: string): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/brands${params}`);
+        return await fetch(`${API_BASE_URL}/brands${params}`, {
+            credentials: "include"
+        });
     },
 
     getSimpleBrands: async (params: string): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/brands${params}`);
+        return await fetch(`${API_BASE_URL}/brands${params}`, {
+            credentials: "include"
+        });
     },
 
     addBrand: async (brand: Brand): Promise<Response> => {
@@ -23,6 +27,7 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: "include",
             body: JSON.stringify(brand)});
     },
 
@@ -32,12 +37,15 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: "include",
             body: JSON.stringify(brand)});
     },
 
     // Получить модели марки
     getModelsByBrand: async (brandId: number, params: string): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/models/${brandId}${params}`);
+        return await fetch(`${API_BASE_URL}/models/${brandId}${params}`, {
+            credentials: "include"
+        });
     },
 
     addModel: async (model: Model): Promise<Response> => {
@@ -46,6 +54,7 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: "include",
             body: JSON.stringify(model)});
     },
 
@@ -55,16 +64,21 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: "include",
             body: JSON.stringify(model)});
     },
 
     // Получить все услуги
     getServices: async (params: string): Promise<Response> => {
-        return  await fetch(`${API_BASE_URL}/services${params}`);
+        return  await fetch(`${API_BASE_URL}/services${params}`, {
+            credentials: "include"
+        });
     },
 
     getSimpleServices: async (params: string): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/services${params}`);
+        return await fetch(`${API_BASE_URL}/services${params}`, {
+            credentials: "include"
+        });
     },
 
     addService: async (service: Service): Promise<Response> => {
@@ -73,6 +87,7 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: "include",
             body: JSON.stringify(service)});
     },
 
@@ -82,6 +97,7 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: "include",
             body: JSON.stringify(service)});
     },
 
@@ -91,12 +107,15 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: "include",
             body: JSON.stringify(price)});
     },
 
     // Получить услуги для конкретной модели
     getServicesForModel: async (modelId: number, params: string): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/services/${modelId}${params}`);
+        return await fetch(`${API_BASE_URL}/services/${modelId}${params}`, {
+            credentials: "include"
+        });
     },
 
     addPrices: async (prices: ServiceWithPrice[]): Promise<Response> => {
@@ -105,23 +124,32 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: "include",
             body: JSON.stringify(prices)});
     },
 
     getUsers: async (params: string): Promise<Response> => {
-        return  await fetch(`${API_BASE_URL}/users${params}`);
+        return  await fetch(`${API_BASE_URL}/users${params}`, {
+            credentials: "include"
+        });
     },
 
     getSimpleUsers: async (params: string): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/users${params}`);
+        return await fetch(`${API_BASE_URL}/users${params}`, {
+            credentials: "include"
+        });
     },
 
     getUserStatistics: async (userId: number): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/users/${userId}/statistics`);
+        return await fetch(`${API_BASE_URL}/users/${userId}/statistics`, {
+            credentials: "include"
+        });
     },
 
     findUserByPhone: async (phoneNumber: string): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/users/find${phoneNumber}`);
+        return await fetch(`${API_BASE_URL}/users/find${phoneNumber}`, {
+            credentials: "include"
+        });
     },
 
     setUserType: async (userId: number, newUserType: string): Promise<Response> => {
@@ -130,6 +158,7 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: "include",
             body: JSON.stringify(newUserType)});
     },
 
@@ -139,46 +168,67 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: "include",
             body: JSON.stringify(newWorkStatus)});
     },
 
     getOrders: async (params: string): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/orders${params}`);
+        return await fetch(`${API_BASE_URL}/orders${params}`, {
+            credentials: "include"
+        });
     },
 
     getOrdersForUser: async (params: string): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/users${params}`);
+        return await fetch(`${API_BASE_URL}/users${params}`, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: "include"
+        });
     },
 
     getOrdersForMaster: async (params: string): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/users${params}`);
+        return await fetch(`${API_BASE_URL}/users${params}`, {
+            credentials: "include"
+        });
     },
 
     getSimpleOrdersForMaster: async (masterId: number, params: string): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/users/${masterId}/ordersToWork${params}`);
+        return await fetch(`${API_BASE_URL}/users/${masterId}/ordersToWork${params}`, {
+            credentials: "include"
+        });
     },
 
     getSimpleOrders: async (params: string): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/orders${params}`);
+        return await fetch(`${API_BASE_URL}/orders${params}`, {
+            credentials: "include"
+        });
     },
 
     getSimpleOrdersForUser: async (userId: number, params: string): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/users/${userId}/orders${params}`);
+        return await fetch(`${API_BASE_URL}/users/${userId}/orders${params}`, {
+            credentials: "include"
+        });
     },
 
     deleteOrder: async (orderId: number): Promise<Response> => {
         return await fetch(`${API_BASE_URL}/orders/${orderId}`,
             {
                 method: 'DELETE',
+                credentials: "include"
             });
     },
 
     getOrderDetailsForUserOrMaster: async (orderId: number): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/orders/${orderId}/simpleDetails`);
+        return await fetch(`${API_BASE_URL}/orders/${orderId}/simpleDetails`, {
+            credentials: "include"
+        });
     },
 
     getOrderDetailsForAdmin: async (orderId: number): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/orders/${orderId}/fullDetails`);
+        return await fetch(`${API_BASE_URL}/orders/${orderId}/fullDetails`, {
+            credentials: "include"
+        });
     },
 
     setOrderStatus: async (orderId: number, newOrderStatus: string): Promise<Response> => {
@@ -187,6 +237,7 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: "include",
             body: JSON.stringify(newOrderStatus)});
     },
 
@@ -196,11 +247,14 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: "include",
             body: JSON.stringify({newOrder, services})});
     },
 
     getDateSlots: async (params: string): Promise<Response> => {
-        return await fetch(`${API_BASE_URL}/dateSlots${params}`)
+        return await fetch(`${API_BASE_URL}/dateSlots${params}`, {
+            credentials: "include"
+        })
     },
 
     setDateSlotsStatus: async (dateSlotId: number, newStatus: string): Promise<Response> => {
@@ -209,6 +263,7 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: "include",
             body: JSON.stringify(newStatus)});
     },
 
@@ -218,6 +273,17 @@ export const api = {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: "include",
             body: JSON.stringify(data)});
     },
+
+    login: async (data: LoginData): Promise<Response> => {
+        return await fetch(`${API_BASE_URL}/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: "include",
+            body: JSON.stringify(data)});
+    }
 };

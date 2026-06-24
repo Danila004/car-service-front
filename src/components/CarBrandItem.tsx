@@ -45,7 +45,11 @@ function CarBrandItem({ brand, onUpdateBrand}: CarBrandItemProps) {
             status: newStatus
         });
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -67,7 +71,11 @@ function CarBrandItem({ brand, onUpdateBrand}: CarBrandItemProps) {
             status: newStatus
         });
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -82,16 +90,18 @@ function CarBrandItem({ brand, onUpdateBrand}: CarBrandItemProps) {
     const handleModelClick = async (model: Model) => {
         if (!selectedBrand) return;
         setSelectedModel(model);
-        api.getServicesForModel(model.modelId, "").then(async response => {
-            if(!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                setError(error);
+        const response = await api.getServicesForModel(model.modelId, "");
+        if(!response.ok) {
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
             }
-            else {
-                const modelServices : ServiceWithPrice[] = await response.json();
-                setServices(Array.from(modelServices));
-            }
-        });
+            setError(error);
+            return;
+        }
+        const modelServices : ServiceWithPrice[] = await response.json();
+        setServices(modelServices);
     };
 
     // Сохранение изменений услуги
@@ -104,7 +114,11 @@ function CarBrandItem({ brand, onUpdateBrand}: CarBrandItemProps) {
             status: price.status
         });
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -123,11 +137,15 @@ function CarBrandItem({ brand, onUpdateBrand}: CarBrandItemProps) {
             modelId: model.modelId,
             modelName: model.modelName,
             modelYear: editModelYear,
-            brandId: selectedBrand.brandId,
+            brandId: selectedBrand?.brandId,
             status: model.status
         });
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -141,19 +159,21 @@ function CarBrandItem({ brand, onUpdateBrand}: CarBrandItemProps) {
         setSelectedModel(null);
     };
 
-    const handleBrandClick = (brand: Brand) => {
+    const handleBrandClick = async (brand: Brand) => {
         setIsExpanded(!isExpanded)
         setSelectedBrand(brand);
-        api.getModelsByBrand(brand.brandId, "").then(async response => {
-            if(!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                setError(error);
+        const response = await api.getModelsByBrand(brand.brandId, "");
+        if(!response.ok) {
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
             }
-            else {
-                const brandModels : Model[] = await response.json();
-                setModels(Array.from(brandModels));
-            }
-        });
+            setError(error);
+            return;
+        }
+        const brandModels : Model[] = await response.json();
+        setModels(brandModels);
     };
 
     const handleServiceClick = (service: ServiceWithPrice) => {

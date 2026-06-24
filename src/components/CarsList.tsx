@@ -1,5 +1,5 @@
 import {Brand, ServiceWithPrice} from '../types';
-import CarBrandItem from './CarBrandItem';
+import CarBrandItem from "./CarBrandItem.tsx";
 import {useApi} from "../hooks/useApi.ts";
 import {api} from "../services/api.ts";
 import {useEffect, useState} from "react";
@@ -33,7 +33,11 @@ function CarsList({onBack}: CarListProps) {
         };
         const response : Response = await api.addBrand(newBrand);
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -53,7 +57,11 @@ function CarsList({onBack}: CarListProps) {
         };
         const response : Response = await api.addModel(newModel);
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -63,7 +71,11 @@ function CarsList({onBack}: CarListProps) {
     const handleAddPrices = async (services: ServiceWithPrice[]) => {
         const response : Response = await api.addPrices(services);
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -72,7 +84,11 @@ function CarsList({onBack}: CarListProps) {
     const handleUpdateBrand = async (brand: Brand, newStatus: string) => {
         const response = await api.setBrandStatus(brand);
         if(!response.ok) {
-            const error = await response.json().catch(() => ({}));
+            const error = await response.text();
+            if(error === 'NOT_ACCESS_TOKEN' || error === 'NOT_REFRESH_TOKEN' || error === 'NOT_VALID_REFRESH_TOKEN') {
+                setError('Пройдите авторизацию для продолжения');
+                return;
+            }
             setError(error);
             return;
         }
@@ -81,11 +97,11 @@ function CarsList({onBack}: CarListProps) {
         }));
     }
 
-    if (apiError) {
+    if (apiError || error) {
         return (
             <div className="brand-panel error-panel">
                 <div className="panel-header">
-                    <span>⚠️ Ошибка загрузки данных: {apiError}</span>
+                    <span>⚠️ Ошибка загрузки данных: {apiError ? apiError : error}</span>
                 </div>
             </div>
         );
